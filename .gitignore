@@ -1,0 +1,9 @@
+*.txt
+^.settings
+*.project
+submission_vl.iml
+testdata/
+bin/
+log/
+conf/config.test.properties
+*.tif
