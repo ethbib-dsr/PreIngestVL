@@ -1,5 +1,6 @@
 **/*.jar
 *.txt
+!jars.txt
 ^.settings
 *.project
 submission_vl.iml

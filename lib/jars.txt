@@ -1,0 +1,7 @@
+dom4j-1.6.1.jar
+dps-sdk-3.2.1.jar
+jars.txt
+jxl-2.6.9.jar
+log4j-1.2.14.jar
+ojdbc6.jar
+xmlbeans-2.3.0.jar
