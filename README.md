@@ -1,18 +1,23 @@
 # E-rara Submission App Visual Library #
 
 
-Application that picks up SIP capsules (zip files), extracts them, creates meta data, copies them to location for further processing. 
-Java App supposed to run on a server and called by an external Shell Script. All relevant 
+Application that picks up SIP capsules (zip files), extracts them, creates meta data, copies them to location for further processing.
+Java App supposed to run on a server and called by an external Shell Script. All relevant
 
 
-## Current Version: 1.2.1 ##
+## Current Version: 1.3 ##
 
 
 ### TODO ###
 * nothing
 
-
 ### VERSION HISTORY ###
+
+### version  1.3
+* added ability to handle fulltext folders in SIP_STATUS
+* updated config.properties for fulltext file handling
+* updated config.properties for e-rara and e-manuscripta sources
+* fixed time calcucation error for updating listing file content
 
 #### version 1.2.1
 * Refactoring of getAllSips in SourceFileListing
@@ -82,7 +87,7 @@ Java App supposed to run on a server and called by an external Shell Script. All
             * implement database connectivitiy
          * compare list and compile bulk
             * the same file is already in DB
-            * if delta (gen1) a master must be FINISHED in DB 
+            * if delta (gen1) a master must be FINISHED in DB
 		    * no file with Aleph ID that currently is in DB with status <> FINISHED is allowed
             * no file with Aleph ID that and has DB status FINISHED but lower timestamp than in DB is allowed
 			* one master per Aleph ID
@@ -125,7 +130,7 @@ Java App supposed to run on a server and called by an external Shell Script. All
 * Create SIP Structure in sip-working folder
 * Implement prototyp logic (source copy to pre-extract, pre-extract unzip to extract)
 * create empty dc.xml
-* create empty ie.xml 
+* create empty ie.xml
 * md5 debug output for all files in sip folder
 
 #### version 0.1  ####
@@ -137,7 +142,7 @@ Java App supposed to run on a server and called by an external Shell Script. All
 
 #### preparation ####
 * set up development environment
-* set up IDE 
+* set up IDE
 * install and set up correct version of JVM
 * execute previous projects
 * understanding business domain and requirements
