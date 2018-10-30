@@ -1,6 +1,10 @@
 **/*.jar
 *.txt
 !jars.txt
+<<<<<<< HEAD
+=======
+!version/version.txt
+>>>>>>> master
 ^.settings
 *.project
 submission_vl.iml
@@ -9,3 +13,5 @@ bin/
 log/
 conf/config.test.properties
 *.tif
+**/*.db
+**/*.sqlite

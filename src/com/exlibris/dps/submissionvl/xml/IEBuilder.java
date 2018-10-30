@@ -361,7 +361,7 @@ public class IEBuilder
 	{
 		return config.getXmlDomainRoot()
 					+ config.getXmlPathDivider()
-					+ fileHandler.getInstituteName()
+					+ config.getXmlDcInstitute()
 					+ config.getXmlPathDivider() 
 					+ mets.getAlephid();
 	}

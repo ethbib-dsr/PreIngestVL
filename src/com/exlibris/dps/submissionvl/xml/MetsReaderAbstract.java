@@ -1,6 +1,5 @@
 package com.exlibris.dps.submissionvl.xml;
 
-
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -21,171 +20,37 @@ import org.w3c.dom.NodeList;
 
 import com.exlibris.dps.submissionvl.ConfigProperties;
 
-
-
-/**
- * MetsReader Object
- * 
- * Responsible for extracting information from a export_mets.xml file
- * and to provide a usable Mets object
- * 
- * @author Lars Haendler
- * 
- */
-public class MetsReader
+public abstract class MetsReaderAbstract
 {
+
 	private final Logger logger = Logger.getLogger(this.getClass());	
 	
 	private ConfigProperties config;
 	private String metsFilePath;
-	private Mets mets;
+	private Mets mets;	
 	
-	
-	/**
-	 * Constructor that needs the path to the mets file as initial argument
-	 * 
-	 * @param String filePath
-	 */
-	public MetsReader(String filePath, ConfigProperties config)
+	public MetsReaderAbstract(String filePath, ConfigProperties confi)
 	{
 		this.config = config;
 
 		setMetsFilePath(filePath);
 		
 		mets = new Mets();
-		//TODO: refactor
 		domParsing();
 	}
 	
 	
-	public void findSectionInDom()
-	{
-		Document dom = createDOM();
-		
-		//NodeList nl = dom.getChildNodes();
-		
-		//logger.debug(nl.getLength());
-		
-		String xPath = "/mets/dmdSec[contains(@ID,\"md\")]/mdWrap/xmlData/*[local-name()='mods']/*[local-name()='recordInfo']/*[local-name()='recordIdentifier']";
-		
-		
-		String returnVal = "";
-		NodeList nodes = null;
-		
-		try
-		{
-			XPath xpath  = XPathFactory.newInstance().newXPath();
-			
-			XPathExpression expr = xpath.compile(xPath);
-			Object result = expr.evaluate(dom, XPathConstants.NODESET);
-			nodes = (NodeList) result;
-			//returnVal = nodes.item(0).getTextContent();
-		}
-		catch (XPathExpressionException e)
-		{
-			logger.error("XPathExpressionException: " + e.getMessage());
-		}
-
-		
-		
-		for(int i=0; i<nodes.getLength(); i++) 
-		{
-			Node node = nodes.item(i);
-			
-			if(node.getTextContent().equals("000310679"))
-			{
-				logger.debug(node.getNodeName()
-						+ ", " + node.getTextContent()
-						+ ", " + node.getLocalName());
-				logger.debug("pos: " + i);
-				
-				/*
-				logger.debug(node.getParentNode().getNodeName()
-						+ ", " + node.getTextContent()
-						+ ", " + node.getLocalName());
-				*/
-				
-			}
-			
-			
-			
-
-
-		}
-		
-		//logger.debug(nodes);
-		logger.debug(nodes.getLength());
-		
-		
-	}
+	abstract void domParsing();
 	
+	abstract String extractDoi(Document dom);
 	
-	/**
-	 * DOM parsing and extracting data into Mets object
-	 * 
-	 */
-	private void domParsing()
-	{
-		Document dom = createDOM();
-
-		if(dom != null)
-		{
-			getMets().setAlephid(extractAlephid(dom));
-			getMets().setDoi(extractDoi(dom));
-			getMets().setAlternativeTitle(extractAlternativeTitle(dom));
-			getMets().setLocation(extractLocation(dom));
-			addFilelistToMets(dom.getElementsByTagName(config.getFileNodeName()));
-		}
-	}
+	abstract String extractAlephid(Document dom);
 	
+	abstract String extractAlternativeTitle(Document dom);
 	
-	/**
-	 * Extract doi from DOM
-	 * 
-	 * @param Document dom
-	 * @return String doi
-	 */
-	private String extractDoi(Document dom)
-	{
-		return getTextContentFromXPath(dom, config.getXpathDOI());
-	}
+	abstract String extractLocation(Document dom);
 	
-	
-	/**
-	 * Extract AlephID from DOM
-	 * 
-	 * @param Document dom
-	 * @return String Aleph ID
-	 */
-	private String extractAlephid(Document dom)
-	{
-		return getTextContentFromXPath(dom, config.getXpathAlephID());
-	}
-	
-	
-	
-	/**
-	 * Extract alternative title from DOM
-	 * 
-	 * @param Document dom
-	 * @return String alternative title
-	 */
-	private String extractAlternativeTitle(Document dom)
-	{
-		return getTextContentFromXPath(dom, config.getXpathAlternativeTitle());
-	}
-	
-	
-	/**
-	 * Extract location from DOM
-	 * 
-	 * @param Document dom
-	 * @return String location
-	 */
-	private String extractLocation(Document dom)
-	{
-		return getTextContentFromXPath(dom, config.getXpathLocation());
-	}
+	//TODO: self check (aleph)id exists	and if it adheres regex 
 	
 	
 	/**
@@ -351,6 +216,4 @@ public class MetsReader
 	{
 		this.metsFilePath = metsFilePath;
 	}
-	
-
 }

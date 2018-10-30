@@ -1,19 +1,45 @@
-# E-rara Submission App Visual Library #
+# Submission application for Visual Library #
 
+Application that picks up zipped SIP capsules , extracts them, creates Rosetta mets.xml and copies everything to a target location.
+Java Application started by separate shell script.
 
-Application that picks up SIP capsules (zip files), extracts them, creates meta data, copies them to location for further processing.
-Java App supposed to run on a server and called by an external Shell Script. All relevant
+## Starting application ##
 
+com.exlibris.dps.submissionvl.AppStarter "conf/config.test.properties" "conf/log4j.properties" "7777"
 
-## Current Version: 1.3 ##
-
+## Current Version: 1.4.2 ##
 
 ### TODO ###
-* nothing
+
+* finding the correct alephid in mets that is also part of the file name (2.0)
+  * extracting all relevant data from mets section that contains aleph id
+  * doi, title, shelf location
+  * optional: save correct alephid
+  * note: refactoring of many key elements in code base
+* sqlite tracking to replace current file based tracking system (2.1)
+  * refactoring large parts of inner logic
+  * implementing and handling of status
+  * alephid and maybe mets section
+  * note: removes complete file base tracking logic
 
 ### VERSION HISTORY ###
 
-### version  1.3
+### version 1.4.2 (2018-10-30) ###
+* version directory added
+* version file moved to directory
+
+### version 1.4.1 (2018-10-16) ###
+* version output in log
+* define individual log4j file location
+* define individual port per run
+* Cleanup start log and AppStarter class
+
+### version 1.4 (2018-09-26)
+* remove institutes from file listing (1.4)
+* preparation for 2.0 upgrade
+* config files need to be updated
+
+### version 1.3
 * added ability to handle fulltext folders in SIP_STATUS
 * updated config.properties for fulltext file handling
 * updated config.properties for e-rara and e-manuscripta sources

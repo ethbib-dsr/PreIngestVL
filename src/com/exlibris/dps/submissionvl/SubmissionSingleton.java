@@ -89,20 +89,14 @@ public class SubmissionSingleton
 
 		checkFileSystem();
 		
-		//get institutes
-		List<String> institutesList = config.getSourceTargetInstitutes();
-		
-		for(String instituteName : institutesList)
-		{
-			//test new sip file extraction
-			SortedSet<SourceSip> allSips = getAllSips(instituteName);
+		//test new sip file extraction
+		SortedSet<SourceSip> allSips = getAllSips();
 			
-			//extract usable list taking into account all constraints
-			Set<SourceSip> currentRunSips = getFilesForCurrentRun(allSips, instituteName);
+		//extract usable list taking into account all constraints
+		Set<SourceSip> currentRunSips = getFilesForCurrentRun(allSips);
 			
-			//handle extracted list
-			handleSIPs(currentRunSips);
-		}
+		//handle extracted list
+		handleSIPs(currentRunSips);
 		
 		logger.info("Submission App finished");
 	}
@@ -114,15 +108,14 @@ public class SubmissionSingleton
 	 * as SourceSip objects in a SortedSet for further
 	 * use
 	 * 
-	 * @param String institute name
 	 * @return SortedSet<SourceSip> all file in sources
 	 */
-	private SortedSet<SourceSip> getAllSips(String instituteName)
+	private SortedSet<SourceSip> getAllSips()
 	{
 		//empty sorted set to be filled with files
 		SortedSet<SourceSip> allSips = new TreeSet<SourceSip>();
 		//SourceListingFile that gets generated if needed
-		SourceListingFile sl = prepareSourceListingFile(instituteName);
+		SourceListingFile sl = prepareSourceListingFile();
 		
 		//HashMap of file names and size in bytes
 		Map<String, Long> fileMap = sl.getListingFileContent();
@@ -138,7 +131,7 @@ public class SubmissionSingleton
 			//only allow specified file extension
 			if(pair.getKey().endsWith(config.getAllowedArchiveType()))
 			{
-				SourceSip sourceSip = new SourceSip(pair.getKey(), buildFileSourcePath(instituteName, pair.getKey()), buildFileTargetPath(instituteName, pair.getKey()), (long) pair.getValue(), instituteName );
+				SourceSip sourceSip = new SourceSip(pair.getKey(), buildFileSourcePath(pair.getKey()), buildFileTargetPath(pair.getKey()), (long) pair.getValue());
 				//add newly created SourceSip to allSips
 				allSips.add(sourceSip);			
 			}
@@ -155,8 +148,7 @@ public class SubmissionSingleton
 
 	/**
 	 * Preparation of object that hold the listing file,
-	 * the listing file contains the listing of the 
-	 * institute sources
+	 * the listing file 
 	 * 
 	 * file existence will be checked and if needed created
 	 * 
@@ -164,19 +156,17 @@ public class SubmissionSingleton
 	 * plus size if it is too old or has never been filled
 	 * with data before 
 	 * 
-	 * @param String institute name
 	 * @return SourceListingFile
 	 */
-	private SourceListingFile prepareSourceListingFile(String institute)
+	private SourceListingFile prepareSourceListingFile()
 	{
 		boolean fileWasMissing = false;
 		int allowedAge = config.getListingFileAge();
-		String sourceListingFileSuffix = config.getListingFileExtension();
 		
 		//source directory
-		File sourceDir = new File(config.getSourcePath() + institute + ConfigProperties.getFileSeparator());
+		File sourceDir = new File(config.getSourcePath());
 		//file that will contain the listing of the source directory
-		File listingFile = new File(institute + sourceListingFileSuffix);		
+		File listingFile = new File(config.getListingFileName());		
 		
 		//in case listing file does not already exist
 		if(!listingFile.exists())
@@ -219,15 +209,14 @@ public class SubmissionSingleton
 	
 	/**
 	 * Helper method to build the source path of 
-	 * any file (supplied) in any institution (supplied)
+	 * any file (supplied)
 	 * 
-	 * @param String institute name
 	 * @param String file name
 	 * @return String complete source path to file
 	 */
-	private String buildFileSourcePath(String institute, String fileName)
+	private String buildFileSourcePath(String fileName)
 	{
-		String fileSourcePath = config.getSourcePath() + institute + ConfigProperties.getFileSeparator() + fileName;
+		String fileSourcePath = config.getSourcePath() + fileName;
 		
 		return fileSourcePath;
 	}
@@ -235,15 +224,14 @@ public class SubmissionSingleton
 	
 	/**
 	 * Helper method to build the target path of 
-	 * any file (supplied) in any institution (supplied)
+	 * any file (supplied)
 	 * 
-	 * @param String institute name
 	 * @param String file name
 	 * @return String complete target path to file
 	 */
-	private String buildFileTargetPath(String institute, String fileName)
+	private String buildFileTargetPath(String fileName)
 	{
-		String fileTargetPath = config.getTargetPath() + institute + ConfigProperties.getFileSeparator() + fileName;
+		String fileTargetPath = config.getTargetPath() + fileName;
 		
 		return fileTargetPath;
 	}	
@@ -260,7 +248,7 @@ public class SubmissionSingleton
 	 * @param String institution name
 	 * @return SortedSet<SourceSip>
 	 */
-	private SortedSet<SourceSip> getFilesForCurrentRun(SortedSet<SourceSip> allSips, String instituteName)
+	private SortedSet<SourceSip> getFilesForCurrentRun(SortedSet<SourceSip> allSips)
 	{
 		logger.debug("collect files for current run");
 		
@@ -369,7 +357,7 @@ public class SubmissionSingleton
 						{
 							List<Map<String, String>> dbRecords = db.getRecordsWithAlephID(sourceSip.getAlephID());
 							AlephTimestamp recordTimestamp = new AlephTimestamp((String) dbRecords.get(0).get(config.getDbRowAliasTimestamp()));
-							SourceSip lastDbSip = new SourceSip(dbRecords.get(0).get(config.getDbRowSipName()),"/","/",0,"");
+							SourceSip lastDbSip = new SourceSip(dbRecords.get(0).get(config.getDbRowSipName()),"/","/",0);
 							
 							//SIP timestamp must be higher than last from db / check for smaller or equal
 							if(sourceSip.getTimestamp().compareTo(recordTimestamp) == 0|| sourceSip.getTimestamp().compareTo(recordTimestamp) == -1)
@@ -394,12 +382,12 @@ public class SubmissionSingleton
 			{
 				currentSips.add(sourceSip);
 				fileCounter--;
-				logger.info(sourceSip.getFileName() + "(" + instituteName + ") is used"); 
+				logger.info(sourceSip.getFileName() + " is used"); 
 				logger.debug(fileCounter + " free spots left in queue ");
 			}
 			else
 			{
-				logger.debug(sourceSip.getFileName() + "(" + instituteName + ") not used. Reason: " + reason.toString());
+				logger.debug(sourceSip.getFileName() + " not used. Reason: " + reason.toString());
 			}
 			
 			//like first conditional statement but break at this point 
@@ -454,24 +442,23 @@ public class SubmissionSingleton
 		{
 			AccessDb db = new AccessDb(config);
 			File sipFile = new File(singleSip.getSourcePath());
-			String instituteName = singleSip.getInstitute();
 
 			//db-status-initialized = INITIALIZED
 			db.insertSipIntoDB(singleSip);
 			logger.info("SIP " + singleSip.getFileName() + " (" + singleSip.getFileSizeInMb() + "MB) started");
 			
-			copyZipFile(sipFile, instituteName);
+			copyZipFile(sipFile);
 			//db-status-copied = COPIEDFROMSOURCE
 			db.updateStatusFromAmdId(singleSip.getAmdIdFromFilename(), config.getDbStatusCopied());
 			
-			extractZipFile(sipFile, instituteName);
+			extractZipFile(sipFile);
 			//db-status-extracted = EXTRACTED
 			db.updateStatusFromAmdId(singleSip.getAmdIdFromFilename(), config.getDbStatusExtracted());
 			
 			//check if integrity is correct
-			if (checkExtractedSipIntegrity(sipFile, singleSip, instituteName, db))
+			if (checkExtractedSipIntegrity(sipFile, singleSip, db))
 			{
-				FileHandler extractFh = new FileHandler(sipFile, instituteName, config);
+				FileHandler extractFh = new FileHandler(sipFile, config);
 				
 				makeExifCorrections(extractFh);
 				//db-status-exif = EXIF-CHECKED+FIXED
@@ -482,10 +469,10 @@ public class SubmissionSingleton
 				db.updateStatusFromAmdId(singleSip.getAmdIdFromFilename(), config.getDbStatusMetadata());
 				
 				//db-status-moved2target = MOVED-2-TARGET-DIRECTORY
-				moveFromExtractToTarget(sipFile, instituteName); 
+				moveFromExtractToTarget(sipFile); 
 				db.updateStatusFromAmdId(singleSip.getAmdIdFromFilename(), config.getDbStatusMoved2Target());
 				
-				removeFromPreExtract(sipFile, instituteName); 
+				removeFromPreExtract(sipFile); 
 				//db-status-preingest-finished = DB_STATUS_PREINGEST_FINISHED
 				db.updateStatusFromAmdId(singleSip.getAmdIdFromFilename(), config.getDbStatusPreingestFinished());
 				logger.info("SIP " + sipFile.getName() + " finished"); 		
@@ -494,7 +481,7 @@ public class SubmissionSingleton
 			{
 				//TODO how to handle sip files when integrity not intact
 				//keep zip in preextract OR 
-				//removeFromPreExtract(sipFile, instituteName);
+				//removeFromPreExtract(sipFile);
 				//keep zip in extracted 
 			}
 		}
@@ -509,7 +496,7 @@ public class SubmissionSingleton
 	 *           extracted SIP file
 	 * @return boolean
 	 */
-	private boolean checkExtractedSipIntegrity(File sipFile, SourceSip singleSip, String instituteName, AccessDb db)
+	private boolean checkExtractedSipIntegrity(File sipFile, SourceSip singleSip, AccessDb db)
 	{
 		boolean checkSuccess = true;
 		boolean checkImages = false;
@@ -518,7 +505,7 @@ public class SubmissionSingleton
 		
 		//1. check: image file inside sip have allowed extension
 		List<String> allowedImageFileEndings = config.getAllowedImageFileEndings();
-		FileHandler fh = new FileHandler(sipFile, instituteName, config);		
+		FileHandler fh = new FileHandler(sipFile, config);		
 		
 		String[] imageNameArray = fh.getImageFilesArray();
 		File metsFile = fh.getMetsFile();		
@@ -548,7 +535,7 @@ public class SubmissionSingleton
 			db.updateStatusFromAmdId(singleSip.getAmdIdFromFilename(), config.getDbStatusIntegrityMissingMets());
 		}
 
-
+		//TODO: Add checker for AlephID extraction
 		//3. check: aleph id from file corresponds with aleph id from mets
 		MetsReader mr = new MetsReader(fh.getMetsFile().getAbsolutePath(), config);
 		if(!mr.getMets().getAlephid().equals(singleSip.getAlephID()))
@@ -561,7 +548,6 @@ public class SubmissionSingleton
 		
 		
 		//4. check: Images and Fulltext exists
-		
 		String fulltextFilePath = fh.getFulltextFilePath();
 		File fl = new File(fulltextFilePath);
 		
@@ -737,36 +723,27 @@ public class SubmissionSingleton
 
 
 	/**
-	 * check if institute folders exsists in preextract and extract path and
-	 * creates them if necessary cleans folders from old, unused files of
-	 * previous submission app runs
+	 * check if folders exsists in preextract and extract path and
+	 * creates them 
 	 * 
 	 */
 	private void checkFileSystem()
 	{
-		// check if folders for institutes exists in preextract / extract
-		List<String> institutesList = config.getSourceTargetInstitutes();
-		for (String institute : institutesList)
-		{
-			String preExtractPath = config.getPreExtractPath() + institute;
-			String extractPath = config.getExtractPath() + institute;
-			String targetPath = config.getTargetPath() + institute;
-			
-			if (!new File(preExtractPath).exists())
+			if (!new File(config.getPreExtractPath()).exists())
 			{
-				new File(preExtractPath).mkdir();
+				logger.warn(config.getPreExtractPath() + " does not exist, will be created");
+				new File(config.getPreExtractPath()).mkdir();
 			}
-			if (!new File(extractPath).exists())
+			if (!new File(config.getExtractPath()).exists())
 			{
-				new File(extractPath).mkdir();
+				logger.warn(config.getExtractPath() + " does not exist, will be created");
+				new File(config.getExtractPath()).mkdir();
 			}
-			if(! new File(targetPath).exists())
+			if(! new File(config.getTargetPath()).exists())
 			{
-				new File(targetPath).mkdir();
+				logger.warn(config.getTargetPath() + " does not exist, will be created");
+				new File(config.getTargetPath()).mkdir();
 			}
-			
-		}
-
 	}
 
 
@@ -777,25 +754,24 @@ public class SubmissionSingleton
 	 * @param zipFile
 	 *           zip file that is handled
 	 */
-	private void copyZipFile(File zipFile, String instituteName)
+	private void copyZipFile(File zipFile)
 	{
-		String preExtractPath = config.getPreExtractPath() + instituteName
-				+ ConfigProperties.getFileSeparator();
-	
 		FileHandler singleSourceFile = new FileHandler(zipFile, config);
-		logger.info("copy " + zipFile.getPath() + " to " + preExtractPath);
-		singleSourceFile.copyFileTo(preExtractPath);
+		logger.info("copy " + zipFile.getPath() + " to " + config.getPreExtractPath());
+		singleSourceFile.copyFileTo(config.getPreExtractPath());
 	}
 	
 	
-	private void extractZipFile(File zipFile, String instituteName)
+	/**
+	 * Extract zip to extract location
+	 * 
+	 * @param zipFile
+	 */
+	private void extractZipFile(File zipFile)
 	{
-		String preExtractPath = config.getPreExtractPath() + instituteName
-				+ ConfigProperties.getFileSeparator();
-		String extactFilePath = config.getExtractPath() + instituteName + ConfigProperties.getFileSeparator()
-				+ zipFile.getName() + config.getSipDataPath();
+		String extactFilePath = config.getExtractPath() + zipFile.getName() + config.getSipDataPath();
 		
-		FileHandler singlePreExtractFile = new FileHandler(preExtractPath + zipFile.getName(), config);
+		FileHandler singlePreExtractFile = new FileHandler(config.getPreExtractPath() + zipFile.getName(), config);
 		logger.debug("unzipping " + zipFile.getName() + " into " + extactFilePath);
 		singlePreExtractFile.unzipFileTo(extactFilePath);
 	}
@@ -805,11 +781,10 @@ public class SubmissionSingleton
 	 * Removes file from pre-extract path
 	 * 
 	 * @param zipFile source file
-	 * @param institute
 	 */
-	private void removeFromPreExtract(File zipFile, String institute)
+	private void removeFromPreExtract(File zipFile)
 	{
-		String preExtractPath = config.getPreExtractPath() + institute + ConfigProperties.getFileSeparator() + zipFile.getName();
+		String preExtractPath = config.getPreExtractPath() + zipFile.getName();
 		logger.debug("delete " + preExtractPath);
 		
 		File toBeDeleted = new File(preExtractPath);
@@ -823,13 +798,12 @@ public class SubmissionSingleton
 	 * delete tree from extract
 	 * 
 	 * @param zipFile source file
-	 * @param institute
 	 */
-	private void moveFromExtractToTarget(File zipFile, String institute)
+	private void moveFromExtractToTarget(File zipFile)
 	{
 
-		String extractFilePath = config.getExtractPath() + institute + ConfigProperties.getFileSeparator() + zipFile.getName();	
-		String targetFilePath = config.getTargetPath() + institute + ConfigProperties.getFileSeparator() + zipFile.getName();		
+		String extractFilePath = config.getExtractPath() + zipFile.getName();	
+		String targetFilePath = config.getTargetPath() + zipFile.getName();		
 		
 		try
 		{

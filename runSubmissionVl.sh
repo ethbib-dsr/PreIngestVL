@@ -30,8 +30,6 @@ export LC_IDENTIFICATION="de_DE.UTF-8"
 export LC_ALL="de_DE.UTF-8" 
 
 #start java application with correct class path and 'config.properties' location as argument
-java -cp "${submissionvl_home}/bin$LIBPATH" -Xms128m -Xmx1024m com.exlibris.dps.submissionvl.AppStarter "/conf/config.test.properties"
-#absolute path for server needed
-#/exlibris/dps/d4_1/product/local/java/bin/java -cp "${submissionvl_home}/bin$LIBPATH" -Xms128m -Xmx2048m com.exlibris.dps.submissionvl.AppStarter "/conf/config.properties"
+java -cp "${submissionvl_home}/bin$LIBPATH" -Xms128m -Xmx1024m com.exlibris.dps.submissionvl.AppStarter "conf/config.test.properties" "conf/log4j.properties" "7777"
 
 exit

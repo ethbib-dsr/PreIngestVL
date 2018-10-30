@@ -39,8 +39,7 @@ public class FileHandler
 {
 	private File workingPath = null;
 	private ConfigProperties config = null;
-	private String instituteName = null;
-	
+
 	private final Logger logger = Logger.getLogger(this.getClass());
 	
 
@@ -65,20 +64,6 @@ public class FileHandler
 	public FileHandler(File file, ConfigProperties config)
 	{
 		setWorkingPath(file);
-		setConfig(config);
-	}
-	
-	/**
-	 * constructor for file inputs and institute
-	 * 
-	 * @param file
-	 * @param instituteName
-	 * @param config
-	 */
-	public FileHandler(File file, String instituteName, ConfigProperties config)
-	{
-		setWorkingPath(file);
-		setInstituteName(instituteName);
 		setConfig(config);
 	}
 	
@@ -316,13 +301,13 @@ public class FileHandler
 	
 	
 	/**
-	 * return extract path including institute and alephID
+	 * return extract path
 	 * 
 	 * @return String extract path
 	 */
 	private String getExtractAlephIDPath()
 	{
-		return config.getExtractPath() + getInstitutePath() + getWorkingPath().getName() + config.getSipDataPath()
+		return config.getExtractPath() + getWorkingPath().getName() + config.getSipDataPath()
 				+ getAlephID() + ConfigProperties.getFileSeparator();
 	}
 	
@@ -565,7 +550,7 @@ public class FileHandler
 	 */
 	public File getDcExtractFile()
 	{
-		return new File(config.getExtractPath() + getInstitutePath() + getWorkingPath().getName() + config.getSipXmlPath() + config.getDcFileName());
+		return new File(config.getExtractPath() + getWorkingPath().getName() + config.getSipXmlPath() + config.getDcFileName());
 	}
 	
 	
@@ -576,7 +561,7 @@ public class FileHandler
 	 */
 	public File getIeExtractFile()
 	{
-		return new File(config.getExtractPath() + getInstitutePath() + getWorkingPath().getName() + config.getSipXmlPath() + config.getIeFileName());
+		return new File(config.getExtractPath() + getWorkingPath().getName() + config.getSipXmlPath() + config.getIeFileName());
 	}
 	
 
@@ -588,39 +573,6 @@ public class FileHandler
 	private void setConfig(ConfigProperties config)
 	{
 		this.config = config;
-	}
-
-
-	/**
-	 * return institute name
-	 * 
-	 * @return String
-	 */
-	public String getInstituteName()
-	{
-		return instituteName;
-	}
-
-	
-	/**
-	 * sets institute name
-	 * 
-	 * @param instituteName
-	 */
-	public void setInstituteName(String instituteName)
-	{
-		this.instituteName = instituteName;
-	}
-
-	
-	/**
-	 * returns path for institute
-	 * 
-	 * @return String
-	 */
-	private String getInstitutePath()
-	{
-		return getInstituteName() + ConfigProperties.getFileSeparator();
 	}
 	
 	

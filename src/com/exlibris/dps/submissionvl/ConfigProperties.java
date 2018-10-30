@@ -36,7 +36,6 @@ public class ConfigProperties
 	
 	// constants for keys in config.properties
 	final static String PROPERTIES_MULTI_VALUE_DIVIDER = "properties-multi-value-divider";
-	final static String SOURCE_TARGET_INSTITUTES = "source-target-institutes";
 	final static String SOURCE_PATH_KEY = "source-path";
 	final static String TARGET_PATH_KEY = "target-path";
 	final static String EXTRACT_PATH_KEY = "extract-path";
@@ -54,7 +53,7 @@ public class ConfigProperties
 	final static String IE_FILE_NAME = "ie-file-name";
 	final static String MAX_SOURCE_FILE_SIZE = "max-source-file-size";
 	final static String LISTING_FILE_AGE = "listing-file-age"; 
-	final static String LISTING_FILE_EXTENSION = "listing-file-extension";
+	final static String LISTING_FILE_NAME = "listing-file-name";
 	
 	final static String XML_DC_TITLE = "xml-dc-title";
 	final static String XML_DCTERMS_IS_PART = "xml-dcterms-is-part";
@@ -65,6 +64,7 @@ public class ConfigProperties
 	final static String XML_DC_SOURCE = "xml-dc-source";
 	final static String XML_GENERAL_REV_NO = "xml-general-rev-no";
 	final static String XML_GENERAL_DIG_ORIG = "xml-general-dig-orig";
+	final static String XML_DC_INSTITUTE ="xml-dc-institute";
 	
 	final static String XML_PATH_DIVIDER = "xml-path-divider";
 	final static String XML_DOMAIN_ROOT = "xml-domain-root";
@@ -161,7 +161,14 @@ public class ConfigProperties
 	 */
 	public ConfigProperties(String configPath)
 	{
-		CONFIG_PATH = configPath;
+		if(!configPath.startsWith(File.separator))
+		{
+			CONFIG_PATH = File.separator + configPath;
+		}
+		else
+		{
+			CONFIG_PATH = configPath;	
+		}
 	}
 
 
@@ -308,18 +315,18 @@ public class ConfigProperties
 	{
 		return Integer.parseInt(getElementFromProperty(LISTING_FILE_AGE));
 	}
-	
+
 	
 	/**
-	 * Getter for listing file suffix / extension
+	 * Getter for listing file name
 	 * 
-	 * @return String file suffix
+	 * @return String file name
 	 */
-	public String getListingFileExtension()
+	public String getListingFileName()
 	{
-		return getElementFromProperty(LISTING_FILE_EXTENSION);
-	}
-
+		return getElementFromProperty(LISTING_FILE_NAME);
+	}	
+	
 	
 	/**
 	 * Getter for SIP data path
@@ -432,18 +439,7 @@ public class ConfigProperties
 
 	}
 
-
-	/**
-	 * Getter for source-target-institutes as List
-	 * 
-	 * @return List<String> all institutes
-	 */
-	public List<String> getSourceTargetInstitutes()
-	{
-		return getListFromMultiValueProperty(SOURCE_TARGET_INSTITUTES);
-	}
-
-
+	
 	/**
 	 * Getter for system file separator
 	 * 
@@ -627,6 +623,17 @@ public class ConfigProperties
 	{
 		return getElementFromProperty(XML_GENERAL_DIG_ORIG);
 	}
+	
+	
+	/**
+	 * Getter for DC terms:isPartof institute name
+	 * 
+	 * @return
+	 */
+	public String getXmlDcInstitute()
+	{
+		return getElementFromProperty(XML_DC_INSTITUTE);
+	}	
 	
 	
 	/**

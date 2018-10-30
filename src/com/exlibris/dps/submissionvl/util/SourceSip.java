@@ -17,7 +17,6 @@ public class SourceSip implements Comparable<SourceSip>
 	private int genVersion;
 	private String sourcePath;
 	private String targetPath;
-	private String institute;
 	private long fileSize;
 	private String fileExtension;
 	
@@ -32,16 +31,14 @@ public class SourceSip implements Comparable<SourceSip>
 	 * @param sourcePath
 	 * @param targetPath
 	 * @param fileSize
-	 * @param institute
 	 */
-	public SourceSip(String fileName, String sourcePath, String targetPath, long fileSize, String institute)
+	public SourceSip(String fileName, String sourcePath, String targetPath, long fileSize)
 	{
 		super();
 		this.fileName = fileName;
 		this.sourcePath = sourcePath;
 		this.targetPath = targetPath;
 		this.fileSize = fileSize;
-		this.institute = institute;
 		fillSourceSip();
 	}
 
@@ -264,28 +261,6 @@ public class SourceSip implements Comparable<SourceSip>
 	{
 		this.fileSize = fileSize;
 	}	
-	
-	
-	/**
-	 * institute getter
-	 * 
-	 * @return
-	 */
-	public String getInstitute()
-	{
-		return institute;
-	}
-	
-
-	/**
-	 * institute setter
-	 * 
-	 * @param institute
-	 */
-	public void setInstitute(String institute)
-	{
-		this.institute = institute;
-	}
 
 
 	/**
@@ -417,7 +392,7 @@ public class SourceSip implements Comparable<SourceSip>
 	{
 		return "SourceSip [fileName=" + fileName + ", alephID=" + alephID + ", timestamp="
 				+ timestamp + ", sipType=" + sipType + ", genVersion=" + genVersion + ", sourcePath="
-				+ sourcePath + ", fileSize=" + fileSize + ", institute=" + institute + "]";
+				+ sourcePath + ", fileSize=" + fileSize + "]";
 
 	}
 
