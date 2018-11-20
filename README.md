@@ -3,26 +3,40 @@
 Application that picks up zipped SIP capsules , extracts them, creates Rosetta mets.xml and copies everything to a target location.
 Java Application started by separate shell script.
 
-## Starting application ##
+## Application start ##
 
-com.exlibris.dps.submissionvl.AppStarter "conf/config.test.properties" "conf/log4j.properties" "7777"
+com.exlibris.dps.submissionvl.AppStarter "config.test.properties" "log4j.properties" "7777"
 
-## Current Version: 1.4.2 ##
+* parameter 1: properties file
+* parameter 2: log4j configuration
+* parameter 3: [optional] port number, default: 7777
+
+## Current Version: 1.5.1 ##
 
 ### TODO ###
 
-* finding the correct alephid in mets that is also part of the file name (2.0)
-  * extracting all relevant data from mets section that contains aleph id
-  * doi, title, shelf location
-  * optional: save correct alephid
-  * note: refactoring of many key elements in code base
-* sqlite tracking to replace current file based tracking system (2.1)
+* sqlite tracking to replace current file based tracking system (1.6)
   * refactoring large parts of inner logic
   * implementing and handling of status
   * alephid and maybe mets section
   * note: removes complete file base tracking logic
+* Validation of source data
+  * hardening: check if source folder structure has only allowed folders
+  * hardening: check file types
+  * add third folder for import (transcript)
 
 ### VERSION HISTORY ###
+
+### version 1.5.1 (2018-11-20) ###
+* finding the correct alephid in mets that is also part of the file name (1.5)
+  * extracting all relevant data from mets section that contains aleph id
+  * doi, title, shelf location
+  * optional: save correct alephid
+  * note: refactoring of many key elements in code base
+* Lock file to show which job is running (1.5.1)
+
+### version 1.4.3 (2018-10-31) ###
+* small refactoring of config file call
 
 ### version 1.4.2 (2018-10-30) ###
 * version directory added

@@ -30,12 +30,12 @@ import com.exlibris.dps.submissionvl.xml.MetsReader;
 
 /**
  * Singleton Object controlling application
- * 
+ *
  * Singleton object that controls the flow of the application cannot be
  * instantiated
- * 
+ *
  * @author Lars Haendler
- * 
+ *
  */
 public class SubmissionSingleton
 {
@@ -46,7 +46,7 @@ public class SubmissionSingleton
 
 	/**
 	 * disabled constructor
-	 * 
+	 *
 	 */
 	private SubmissionSingleton()
 	{
@@ -56,7 +56,7 @@ public class SubmissionSingleton
 
 	/**
 	 * Singleton instance starter including disabling threading
-	 * 
+	 *
 	 * @param configString
 	 *           config file name
 	 * @return SubmissionSingleton
@@ -81,23 +81,23 @@ public class SubmissionSingleton
 
 	/**
 	 * Starting application
-	 * 
+	 *
 	 */
 	public synchronized void init()
 	{
 		logger.info("Submission App started");
 
 		checkFileSystem();
-		
+
 		//test new sip file extraction
 		SortedSet<SourceSip> allSips = getAllSips();
-			
+
 		//extract usable list taking into account all constraints
 		Set<SourceSip> currentRunSips = getFilesForCurrentRun(allSips);
-			
+
 		//handle extracted list
 		handleSIPs(currentRunSips);
-		
+
 		logger.info("Submission App finished");
 	}
 
@@ -107,7 +107,7 @@ public class SubmissionSingleton
 	 * boundaries) list of all source files and store them
 	 * as SourceSip objects in a SortedSet for further
 	 * use
-	 * 
+	 *
 	 * @return SortedSet<SourceSip> all file in sources
 	 */
 	private SortedSet<SourceSip> getAllSips()
@@ -116,12 +116,12 @@ public class SubmissionSingleton
 		SortedSet<SourceSip> allSips = new TreeSet<SourceSip>();
 		//SourceListingFile that gets generated if needed
 		SourceListingFile sl = prepareSourceListingFile();
-		
+
 		//HashMap of file names and size in bytes
 		Map<String, Long> fileMap = sl.getListingFileContent();
 		//Iterator for fileMap to allow iterating
 		Iterator<Entry<String, Long>> it = fileMap.entrySet().iterator();
-		
+
 		//iterate over each file fileMap
 		while(it.hasNext())
 		{
@@ -133,7 +133,7 @@ public class SubmissionSingleton
 			{
 				SourceSip sourceSip = new SourceSip(pair.getKey(), buildFileSourcePath(pair.getKey()), buildFileTargetPath(pair.getKey()), (long) pair.getValue());
 				//add newly created SourceSip to allSips
-				allSips.add(sourceSip);			
+				allSips.add(sourceSip);
 			}
 			else
 			{
@@ -141,44 +141,44 @@ public class SubmissionSingleton
 				//reason.append(config.getReasonWrongExtension());
 			}
 		}
-		
+
 		return allSips;
 	}
-	
+
 
 	/**
 	 * Preparation of object that hold the listing file,
-	 * the listing file 
-	 * 
+	 * the listing file
+	 *
 	 * file existence will be checked and if needed created
-	 * 
+	 *
 	 * file will be filled with the listing of all source files
 	 * plus size if it is too old or has never been filled
-	 * with data before 
-	 * 
+	 * with data before
+	 *
 	 * @return SourceListingFile
 	 */
 	private SourceListingFile prepareSourceListingFile()
 	{
 		boolean fileWasMissing = false;
 		int allowedAge = config.getListingFileAge();
-		
+
 		//source directory
 		File sourceDir = new File(config.getSourcePath());
 		//file that will contain the listing of the source directory
-		File listingFile = new File(config.getListingFileName());		
-		
+		File listingFile = new File(config.getListingFileName());
+
 		//in case listing file does not already exist
 		if(!listingFile.exists())
 		{
-			try 
+			try
 			{
 				//create file
 				listingFile.createNewFile();
 				fileWasMissing = true;
 				logger.debug("listing file had to created");
-			} 
-			catch (IOException e) 
+			}
+			catch (IOException e)
 			{
 				logger.error("Cannot write listing file");
 				System.exit(0);
@@ -187,9 +187,9 @@ public class SubmissionSingleton
 
 		//create source listing object form the listingFile File object
 		SourceListingFile sourceListing = new SourceListingFile(listingFile,sourceDir.getAbsolutePath());
-		
+
 		logger.debug("listingFile: " + listingFile.getName());
-		
+
 		//older than defined or the file did not exist in the first place
 		if(sourceListing.getAgeInDays() > allowedAge || fileWasMissing)
 		{
@@ -202,48 +202,48 @@ public class SubmissionSingleton
 			//just a short info when file is not created
 			logger.debug("Listing file not older than " + allowedAge + " days. No need to create a new file.");
 		}
-		
+
 		return sourceListing;
 	}
-		
-	
+
+
 	/**
-	 * Helper method to build the source path of 
+	 * Helper method to build the source path of
 	 * any file (supplied)
-	 * 
+	 *
 	 * @param String file name
 	 * @return String complete source path to file
 	 */
 	private String buildFileSourcePath(String fileName)
 	{
 		String fileSourcePath = config.getSourcePath() + fileName;
-		
+
 		return fileSourcePath;
 	}
-	
-	
+
+
 	/**
-	 * Helper method to build the target path of 
+	 * Helper method to build the target path of
 	 * any file (supplied)
-	 * 
+	 *
 	 * @param String file name
 	 * @return String complete target path to file
 	 */
 	private String buildFileTargetPath(String fileName)
 	{
 		String fileTargetPath = config.getTargetPath() + fileName;
-		
+
 		return fileTargetPath;
-	}	
-	
-	
+	}
+
+
 	/**
 	 * Complete business logic that decides
 	 * what sip should be used for the current run
-	 * 
+	 *
 	 * Rather long implementation but there are lots of
 	 * interdependent dependencies to check for
-	 * 
+	 *
 	 * @param SortedSet<SourceSip> all sips that are in the source folder
 	 * @param String institution name
 	 * @return SortedSet<SourceSip>
@@ -251,13 +251,13 @@ public class SubmissionSingleton
 	private SortedSet<SourceSip> getFilesForCurrentRun(SortedSet<SourceSip> allSips)
 	{
 		logger.debug("collect files for current run");
-		
+
 		AccessDb db = new AccessDb(config);
-		
+
 		SortedSet<SourceSip> currentSips = new TreeSet<SourceSip>();
 		int fileCounter = config.getMaxSourceFiles();
 
-		
+
 		Iterator<SourceSip> iterator = allSips.iterator();
 		while(iterator.hasNext())
 		{
@@ -265,41 +265,41 @@ public class SubmissionSingleton
 			boolean addToCurrentSips = true;
 			StringBuilder reason = new StringBuilder(300);
 
-			
+
 			//only allow specified file extension
 			if(!sourceSip.getFileExtension().equals(config.getAllowedArchiveType()))
 			{
 				addToCurrentSips = false;
 				reason.append(config.getReasonWrongExtension());
 			}
-			
+
 			//max number of files not reached
 			if(fileCounter <= 0)
 			{
 				addToCurrentSips = false;
-				reason.append(config.getReasonMaxNum());				
+				reason.append(config.getReasonMaxNum());
 			}
-	
+
 			//file size is less or equal allowed file size
 			if(sourceSip.getFileSize() > config.getMaxSourceFileSize())
 			{
 				addToCurrentSips = false;
 				reason.append(config.getReasonFileSize());
 			}
-			
+
 			//final list has no other source file with the same aleph id
 			if(sipMapContainsAlephID(currentSips, sourceSip))
 			{
 				addToCurrentSips = false;
 				reason.append(config.getReasonUnique());
 			}
-			
+
 			if(sourceSip.getSipType().equals(SipTypeEnum.UNKNOWN))
 			{
 				addToCurrentSips = false;
 				reason.append(config.getReasonSipTypeUnknwn());
 			}
-			
+
 			//check uniqueness of file
 			//no file with exactly the same name should be imported
 			if(db.countRecordsWithAmdId(sourceSip.getAmdIdFromFilename()) > 0)
@@ -309,26 +309,26 @@ public class SubmissionSingleton
 			}
 			else
 			{
-				//start db access only if sip has not already 
+				//start db access only if sip has not already
 				//been discarded for current Sips
 				if(addToCurrentSips)
 				{
 					int numberOfRecordsWithAlephID = db.countRecordsWithAlephID(sourceSip.getAlephID());
-					
+
 					//no SIP in DB with this AlephID
-					if(numberOfRecordsWithAlephID == 0) 
+					if(numberOfRecordsWithAlephID == 0)
 					{
 						//the first record must be a master
 						if(sourceSip.getSipType().equals(SipTypeEnum.GEN))
 						{
 							addToCurrentSips = false;
 							reason.append(config.getReasonFirstMaster());
-						}						
+						}
 					}
-					
+
 					//one record is already in DB
 					//and it has to be a master, so only SIP with gen are allowed
-					if(numberOfRecordsWithAlephID > 0) 
+					if(numberOfRecordsWithAlephID > 0)
 					{
 						//check if only one master per AlephID is in DB
 						if(sourceSip.getSipType().equals(SipTypeEnum.MASTER))
@@ -336,7 +336,7 @@ public class SubmissionSingleton
 							addToCurrentSips = false;
 							reason.append(config.getReasonSingleMaster());
 						}
-						
+
 						//when only one record is in DB, it can only be followed by
 						//a gen 1 SIP
 						if((numberOfRecordsWithAlephID == 1) && (sourceSip.getGenVersion() != 1))
@@ -344,28 +344,28 @@ public class SubmissionSingleton
 							addToCurrentSips = false;
 							reason.append(config.getReasonFirstDelta());
 						}
-						
+
 						//all SIPs with the same AlephID must be finished
 						if(db.countRecordsWithAlephID(sourceSip.getAlephID()) != db.countRecordsWithAlephIdAndFinished(sourceSip.getAlephID()))
 						{
 							addToCurrentSips = false;
 							reason.append(config.getReasonFinished());
-						}						
-						
+						}
+
 						//if all previous checks in current if clause are false
 						if(addToCurrentSips && numberOfRecordsWithAlephID>1)
 						{
 							List<Map<String, String>> dbRecords = db.getRecordsWithAlephID(sourceSip.getAlephID());
 							AlephTimestamp recordTimestamp = new AlephTimestamp((String) dbRecords.get(0).get(config.getDbRowAliasTimestamp()));
 							SourceSip lastDbSip = new SourceSip(dbRecords.get(0).get(config.getDbRowSipName()),"/","/",0);
-							
+
 							//SIP timestamp must be higher than last from db / check for smaller or equal
 							if(sourceSip.getTimestamp().compareTo(recordTimestamp) == 0|| sourceSip.getTimestamp().compareTo(recordTimestamp) == -1)
 							{
 								addToCurrentSips = false;
 								reason.append(config.getReasonMustBeNewer());
-							}							
-							
+							}
+
 							//current gen has be be exactly one higher than prior one
 							if(lastDbSip.getGenVersion() != sourceSip.getGenVersion()-1)
 							{
@@ -376,38 +376,38 @@ public class SubmissionSingleton
 					}
 				}
 			}
-			
+
 			//generate info for each file
 			if(addToCurrentSips)
 			{
 				currentSips.add(sourceSip);
 				fileCounter--;
-				logger.info(sourceSip.getFileName() + " is used"); 
+				logger.info(sourceSip.getFileName() + " is used");
 				logger.debug(fileCounter + " free spots left in queue ");
 			}
 			else
 			{
 				logger.debug(sourceSip.getFileName() + " not used. Reason: " + reason.toString());
 			}
-			
-			//like first conditional statement but break at this point 
+
+			//like first conditional statement but break at this point
 			//to unsure that max number of files reached is in log file
 			if(fileCounter <= 0)
 			{
 				break;
 			}
 		}
-		
+
 		logger.debug("getFilesForCurrentRun End");
-		
+
 		return currentSips;
 	}
-	
-	
+
+
 	/**
-	 * Check if SortedSet of SIPs contains a SIP that has the same AlephID 
+	 * Check if SortedSet of SIPs contains a SIP that has the same AlephID
 	 * as the supplied sourceSip
-	 * 
+	 *
 	 * @param currentSips
 	 * @param sourceSip
 	 * @return boolean
@@ -425,19 +425,19 @@ public class SubmissionSingleton
 				sameAlephID = true;
 			}
 		}
-		
+
 		return sameAlephID;
 	}
-	
-	
+
+
 	/**
-	 * handler for Sips that have been chosen to be worked with 
-	 * 
+	 * handler for Sips that have been chosen to be worked with
+	 *
 	 * @param currentSips
 	 */
 	private void handleSIPs(Set<SourceSip> currentSips)
 	{
-		
+
 		for(SourceSip singleSip : currentSips)
 		{
 			AccessDb db = new AccessDb(config);
@@ -446,52 +446,53 @@ public class SubmissionSingleton
 			//db-status-initialized = INITIALIZED
 			db.insertSipIntoDB(singleSip);
 			logger.info("SIP " + singleSip.getFileName() + " (" + singleSip.getFileSizeInMb() + "MB) started");
-			
+
 			copyZipFile(sipFile);
 			//db-status-copied = COPIEDFROMSOURCE
 			db.updateStatusFromAmdId(singleSip.getAmdIdFromFilename(), config.getDbStatusCopied());
-			
+
 			extractZipFile(sipFile);
 			//db-status-extracted = EXTRACTED
 			db.updateStatusFromAmdId(singleSip.getAmdIdFromFilename(), config.getDbStatusExtracted());
-			
+
 			//check if integrity is correct
 			if (checkExtractedSipIntegrity(sipFile, singleSip, db))
 			{
 				FileHandler extractFh = new FileHandler(sipFile, config);
-				
+
 				makeExifCorrections(extractFh);
 				//db-status-exif = EXIF-CHECKED+FIXED
 				db.updateStatusFromAmdId(singleSip.getAmdIdFromFilename(), config.getDbStatusExif());
-				
+
 				generateMetaDataFiles(extractFh);
 				//db-status-metadata = METADATA-GENERATED
 				db.updateStatusFromAmdId(singleSip.getAmdIdFromFilename(), config.getDbStatusMetadata());
-				
+
 				//db-status-moved2target = MOVED-2-TARGET-DIRECTORY
-				moveFromExtractToTarget(sipFile); 
+				moveFromExtractToTarget(sipFile);
 				db.updateStatusFromAmdId(singleSip.getAmdIdFromFilename(), config.getDbStatusMoved2Target());
-				
-				removeFromPreExtract(sipFile); 
+
+				removeFromPreExtract(sipFile);
 				//db-status-preingest-finished = DB_STATUS_PREINGEST_FINISHED
 				db.updateStatusFromAmdId(singleSip.getAmdIdFromFilename(), config.getDbStatusPreingestFinished());
-				logger.info("SIP " + sipFile.getName() + " finished"); 		
+				logger.info("SIP " + sipFile.getName() + " finished");
+				logger.info("-");
 			}
 			else
 			{
-				//TODO how to handle sip files when integrity not intact
-				//keep zip in preextract OR 
+				logger.debug(sipFile.getName() + " was ignored");
+				//keep zip in preextract OR
 				//removeFromPreExtract(sipFile);
-				//keep zip in extracted 
+				//keep zip in extracted
 			}
 		}
-
 	}
+
 
 	/**
 	 * checks integrity of unzipped folder checks for mets, number of tif files
 	 * and correct file endings
-	 * 
+	 *
 	 * @param sipFile
 	 *           extracted SIP file
 	 * @return boolean
@@ -502,14 +503,15 @@ public class SubmissionSingleton
 		boolean checkImages = false;
 		boolean checkFulltext = false;
 
-		
+
 		//1. check: image file inside sip have allowed extension
 		List<String> allowedImageFileEndings = config.getAllowedImageFileEndings();
-		FileHandler fh = new FileHandler(sipFile, config);		
-		
+		FileHandler fh = new FileHandler(sipFile, config);
+
 		String[] imageNameArray = fh.getImageFilesArray();
-		File metsFile = fh.getMetsFile();		
-		
+		File metsFile = fh.getMetsFile();
+		MetsReader mr = new MetsReader(fh.getMetsFile().getAbsolutePath(), config);
+
 		if(imageNameArray != null)
 		{
 			checkImages = true;
@@ -522,10 +524,9 @@ public class SubmissionSingleton
 					//db-status-integrityfailed-files
 					db.updateStatusFromAmdId(singleSip.getAmdIdFromFilename(), config.getDbStatusIntegrityWrongFiles());
 				}
-			}			
-		}		
-		
-		
+			}
+		}
+
 		//2. check: export_mets.xml exists
 		if (!metsFile.exists())
 		{
@@ -535,22 +536,19 @@ public class SubmissionSingleton
 			db.updateStatusFromAmdId(singleSip.getAmdIdFromFilename(), config.getDbStatusIntegrityMissingMets());
 		}
 
-		//TODO: Add checker for AlephID extraction
-		//3. check: aleph id from file corresponds with aleph id from mets
-		MetsReader mr = new MetsReader(fh.getMetsFile().getAbsolutePath(), config);
-		if(!mr.getMets().getAlephid().equals(singleSip.getAlephID()))
+		//check for AlephID in mets removed for version 1.5
+		if(!mr.hasIdSection(singleSip.getAlephID()))
 		{
 			checkSuccess = false;
 			logger.warn(sipFile.getName() + " " + config.getIntegrityInvalidId() + " " + mr.getMets().getAlephid());
-			//db-status-integrityfailed-alephid
-			db.updateStatusFromAmdId(singleSip.getAmdIdFromFilename(), config.getDbStatusIntegrityInvalidId());
+			//db-status-id-notin-mets
+			db.updateStatusFromAmdId(singleSip.getAmdIdFromFilename(), config.getDbStatusIdNotinMets());
 		}
-		
-		
+
 		//4. check: Images and Fulltext exists
 		String fulltextFilePath = fh.getFulltextFilePath();
 		File fl = new File(fulltextFilePath);
-		
+
 		if (fl.exists())
 		{
 			checkFulltext = true;
@@ -563,16 +561,15 @@ public class SubmissionSingleton
 				//db.updateStatusFromAmdId(singleSip.getAmdIdFromFilename(), config.getDbStatusContainsFulltext());
 			}
 		}
-		
-	
+
 		return checkSuccess;
 	}
 
-	
+
 	/**
 	 * Checks all tif files in extract folder if exif info is correct
 	 * makes necessary adjustments if needed
-	 * 
+	 *
 	 * @param extractFh
 	 */
 	private void makeExifCorrections(FileHandler extractFh)
@@ -580,23 +577,23 @@ public class SubmissionSingleton
 		logger.debug("start checking exif information of all tif files");
 		String[] imageFiles = extractFh.getImageFilesArray();
 		String extractFilePath = extractFh.getImageFilePath();
-		
-		
+
+
 		if(imageFiles != null)
 		{
 			ExifManipulator em = new ExifManipulator(config);
-			
+
 			for(String imageFilePath : imageFiles)
 			{
 				File singleImage = new File(extractFilePath + imageFilePath);
-				
+
 				if(em.hasWrongModifyDateFormat(singleImage))
 				{
 					em.makeExifCorrections(singleImage);
 					logger.warn(singleImage.getName() + " has wrong ModifyDate format and was corrected");
 				}
 			}
-			
+
 			//removed because not needed when exif is NOT used with stay open option
 			//em.close();
 		}
@@ -607,30 +604,31 @@ public class SubmissionSingleton
 
 		logger.debug("checking exif information finished");
 	}
-	
+
 
 	/**
 	 * Generating all relevant meta data files
-	 * 
+	 *
 	 * @param sipFile
 	 */
 	private void generateMetaDataFiles(FileHandler extractFh)
 	{
 		logger.debug("start generating meta data files");
-		
+
 		ArchiveTracker tracker = new ArchiveTracker(extractFh.getWorkingPath().getName());
 		String[] imageFiles = extractFh.getImageFilesArray();
 		String[] fulltextFiles = extractFh.getFulltextFilesArray();
-		
-		
+
+
 		MetsReader mr = new MetsReader(extractFh.getMetsFile().getAbsolutePath(), config);
+		mr.initDomParsing(extractFh.getAlephID());
 		Mets mets = mr.getMets();
 
 		tracker.setArchiveStatus("generateDc");
-		generateDc(extractFh);		
+		generateDc(extractFh);
 		logger.debug("dc.xml for " +  extractFh.getCurrentFileName() + " generated");
-		
-		
+
+
 		if (imageFiles != null)
 		{
 			if (fulltextFiles != null)
@@ -645,7 +643,7 @@ public class SubmissionSingleton
 			{
 				logger.info("SIP " + extractFh.getCurrentFileName() + " contains image files");
 				logger.debug("creation of ie.xml started");
-	
+
 				tracker.setArchiveStatus("generateIe");
 				generateIe(extractFh, mets, true, false);
 			}
@@ -654,7 +652,7 @@ public class SubmissionSingleton
 		{
 			logger.info("SIP " + extractFh.getCurrentFileName() + " contains fulltext files");
 			logger.debug("creation of ie.xml started");
-			
+
 			tracker.setArchiveStatus("generateIe");
 			generateIe(extractFh, mets, false, true);
 		}
@@ -662,11 +660,11 @@ public class SubmissionSingleton
 		{
 			logger.info("SIP " + extractFh.getCurrentFileName() + " contains NO image and NO fulltext files");
 			logger.debug("creation of ie.xml started");
-			
+
 			tracker.setArchiveStatus("generateIe");
 			generateIe(extractFh, mets, false, false);
 		}
-		
+
 		logger.debug("creation of ie.xml finished");
 	}
 
@@ -674,7 +672,7 @@ public class SubmissionSingleton
 
 	/**
 	 * Handles creation of dc file
-	 * 
+	 *
 	 * @return
 	 */
 	private void generateDc(FileHandler extractFh)
@@ -699,16 +697,16 @@ public class SubmissionSingleton
 
 	/**
 	 * Handles creation of simple ie file
-	 * 
+	 *
 	 * @return
 	 */
 	private void generateIe(FileHandler extractFh, Mets mets, boolean hasImageFiles, boolean hasFulltextFiles)
 	{
 		File file = extractFh.getIeExtractFile();
-		
+
 		IEBuilder ie = new IEBuilder(mets, extractFh, config, hasImageFiles, hasFulltextFiles);
 		String ieContent = ie.runBuilder();
-		
+
 		try
 		{
 			writeToFile(file, ieContent);
@@ -724,8 +722,8 @@ public class SubmissionSingleton
 
 	/**
 	 * check if folders exsists in preextract and extract path and
-	 * creates them 
-	 * 
+	 * creates them
+	 *
 	 */
 	private void checkFileSystem()
 	{
@@ -750,7 +748,7 @@ public class SubmissionSingleton
 	/**
 	 * copies file form source location to preextract location extracts file from
 	 * preextract location to extract location
-	 * 
+	 *
 	 * @param zipFile
 	 *           zip file that is handled
 	 */
@@ -760,51 +758,51 @@ public class SubmissionSingleton
 		logger.info("copy " + zipFile.getPath() + " to " + config.getPreExtractPath());
 		singleSourceFile.copyFileTo(config.getPreExtractPath());
 	}
-	
-	
+
+
 	/**
 	 * Extract zip to extract location
-	 * 
+	 *
 	 * @param zipFile
 	 */
 	private void extractZipFile(File zipFile)
 	{
 		String extactFilePath = config.getExtractPath() + zipFile.getName() + config.getSipDataPath();
-		
+
 		FileHandler singlePreExtractFile = new FileHandler(config.getPreExtractPath() + zipFile.getName(), config);
 		logger.debug("unzipping " + zipFile.getName() + " into " + extactFilePath);
 		singlePreExtractFile.unzipFileTo(extactFilePath);
 	}
 
-	
+
 	/**
 	 * Removes file from pre-extract path
-	 * 
+	 *
 	 * @param zipFile source file
 	 */
 	private void removeFromPreExtract(File zipFile)
 	{
 		String preExtractPath = config.getPreExtractPath() + zipFile.getName();
 		logger.debug("delete " + preExtractPath);
-		
+
 		File toBeDeleted = new File(preExtractPath);
 		toBeDeleted.delete();
 	}
-	
-	
+
+
 	/**
 	 * two step move operation using TreeOperation
 	 * copy tree from extract to target
 	 * delete tree from extract
-	 * 
+	 *
 	 * @param zipFile source file
 	 */
 	private void moveFromExtractToTarget(File zipFile)
 	{
 
-		String extractFilePath = config.getExtractPath() + zipFile.getName();	
-		String targetFilePath = config.getTargetPath() + zipFile.getName();		
-		
+		String extractFilePath = config.getExtractPath() + zipFile.getName();
+		String targetFilePath = config.getTargetPath() + zipFile.getName();
+
 		try
 		{
 			logger.info("moving from " + extractFilePath + " to " + targetFilePath);
@@ -817,12 +815,12 @@ public class SubmissionSingleton
 			logger.error("IO Error: " + e.getMessage());
 		}
 	}
-	
-	
-	
+
+
+
 	/**
 	 * Writes String content to a File
-	 * 
+	 *
 	 * @param File file
 	 * @param String content
 	 * @throws IOException

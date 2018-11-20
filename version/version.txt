@@ -1,2 +1,2 @@
-version=1.4.2
-build.date=2018-10-30
+version=1.5.1
+build.date=2018-11-20

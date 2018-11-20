@@ -109,7 +109,7 @@ public class ConfigProperties
 	final static String DB_STATUS_METADATA = "db-status-metadata";
 	final static String DB_STATUS_MOVED2TARGET = "db-status-moved2target";
 	final static String DB_STATUS_PREINGEST_FINISHED = "db-status-preingest-finished";
-	final static String DB_STATUS_INTEGRITY_INVALIDID = "db-status-integrity-invalidid";
+	final static String DB_STATUS_ID_NOTIN_METS = "db-status-id-notin-mets";
 	final static String DB_STATUS_INTEGRITY_MISSINGMETS = "db-status-integrity-missingmets";
 	final static String DB_STATUS_INTEGRITY_WRONGFILES = "db-status-integrity-wrongfiles";
 	final static String DB_STATUS_CONTAINS_FULLTEXT = "db-status-sip-contains-fulltext";
@@ -142,6 +142,8 @@ public class ConfigProperties
 	final static String XPATH_DOI = "xpath-doi";
 	final static String XPATH_ALT_TITLE = "xpath-alt_title";
 	final static String XPATH_LOCATION = "xpath-location";
+	final static String XPATH_SEARCH_ID = "xpath-search-id";
+	final static String XPATH_REPLACE_SECTION = "xpath-replace-section";
 	final static String REGEX_ALEPH_ID = "regex-alephid";
 	final static String FILE_NODE_NAME = "file-node-name";
 	final static String FILe_ATTRIBUTE_ID = "file-attribute-id";
@@ -1004,9 +1006,9 @@ public class ConfigProperties
 	 * 
 	 * @return
 	 */
-	public String getDbStatusIntegrityInvalidId()
+	public String getDbStatusIdNotinMets()
 	{
-		return getElementFromProperty(DB_STATUS_INTEGRITY_INVALIDID);
+		return getElementFromProperty(DB_STATUS_ID_NOTIN_METS);
 	}	
 	
 	
@@ -1335,6 +1337,28 @@ public class ConfigProperties
 	{
 		return getElementFromProperty(XPATH_LOCATION);
 	}	
+	
+	
+	/**
+	 * Getter for X-Path to search ID / AlephID in export_mets.xml
+	 * 
+	 * @return
+	 */
+	public String getXpathSearchId()
+	{
+		return getElementFromProperty(XPATH_SEARCH_ID);
+	}
+	
+	
+	/**
+	 * Getter for section identifier used for replacing element in xpaths
+	 * 
+	 * @return
+	 */
+	public String getXpathReplaceSection()
+	{
+		return getElementFromProperty(XPATH_REPLACE_SECTION);
+	}
 	
 	
 	/**
