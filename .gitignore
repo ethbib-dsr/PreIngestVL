@@ -8,6 +8,7 @@ submission_vl.iml
 testdata/
 bin/
 log/
+target/
 conf/config.test.properties
 *.tif
 **/*.db

@@ -112,7 +112,7 @@ public class ConfigProperties
 	final static String DB_STATUS_ID_NOTIN_METS = "db-status-id-notin-mets";
 	final static String DB_STATUS_INTEGRITY_MISSINGMETS = "db-status-integrity-missingmets";
 	final static String DB_STATUS_INTEGRITY_WRONGFILES = "db-status-integrity-wrongfiles";
-	final static String DB_STATUS_CONTAINS_FULLTEXT = "db-status-sip-contains-fulltext";
+	final static String DB_STATUS_INTEGRITY_WRONG_STRUCTURE = "db-status-integrity-wrongstructure";	
 	
 	final static String REASON_MAX_NUM = "reason-max-num";
 	final static String REASON_FILESIZE = "reason-filesize";
@@ -130,6 +130,7 @@ public class ConfigProperties
 	final static String INTEGRITY_INVALID_ID = "integrity-invalid-id";
 	final static String INTEGRITY_MISSING_METS = "integrity-missing-mets";
 	final static String INTEGRITY_WRONG_FILES = "integrity-wrong-files";
+
 	
 	final static String EXIF_DATE_FIRST_WRONG_CHAR = "exif-date-first-wrong-char";
 	final static String EXIF_DATE_FIRST_WRONG_CHAR_POS = "exif-date-first-wrong-char-pos";
@@ -1037,15 +1038,14 @@ public class ConfigProperties
 	
 	
 	/**
-	 * Getter for value of zip with fultext folder
-	 * files are not allowed
+	 * Getter reason integrity wrong due to wrong file or directory stucture
 	 * 
 	 * @return
 	 */
-	public String getDbStatusContainsFulltext()
+	public String getDbStatusIntegrityWrongStructure()
 	{
-		return getElementFromProperty(DB_STATUS_CONTAINS_FULLTEXT);
-	}		
+		return getElementFromProperty(DB_STATUS_INTEGRITY_WRONG_STRUCTURE);
+	}
 	
 	
 	/**
@@ -1227,6 +1227,9 @@ public class ConfigProperties
 	{
 		return getElementFromProperty(INTEGRITY_WRONG_FILES);
 	}	
+	
+	
+
 	
 	
 	/**

@@ -21,8 +21,6 @@ import org.w3c.dom.NodeList;
 
 import com.exlibris.dps.submissionvl.ConfigProperties;
 
-
-
 /**
  * MetsReader Object
  *
@@ -40,8 +38,13 @@ public class MetsReader
 	private String metsFilePath;
 	private Mets mets;
 	private Document dom;
+<<<<<<< HEAD
 
 
+=======
+	
+	
+>>>>>>> master
 	/**
 	 * Constructor that needs the path to the mets file as initial argument
 	 *
@@ -53,6 +56,7 @@ public class MetsReader
 		setMetsFilePath(filePath);
 		mets = new Mets();
 		dom = createDOM();
+<<<<<<< HEAD
 	}
 
 	/**
@@ -113,11 +117,32 @@ public class MetsReader
 		int returnInt = 0;
 		NodeList nodes = null;
 
+=======
+	}
+	
+	/**
+	 * Check whether or not the mets contains a section that 
+	 * has the supplied record identifier
+	 * 
+	 * @param recordIdentifier
+	 * @return boolean
+	 */
+	public boolean hasIdSection(String recordIdentifier)
+	{
+		String xPath = config.getXpathSearchId();
+		NodeList nodes = null;
+		boolean returnVal = false;
+		
+>>>>>>> master
 		//find all nodes corresponding with the xpath 'xpath-search-id'
 		try
 		{
 			XPath xpath  = XPathFactory.newInstance().newXPath();
+<<<<<<< HEAD
 
+=======
+			
+>>>>>>> master
 			XPathExpression expr = xpath.compile(xPath);
 			Object result = expr.evaluate(dom, XPathConstants.NODESET);
 			nodes = (NodeList) result;
@@ -125,6 +150,7 @@ public class MetsReader
 		catch (XPathExpressionException e)
 		{
 			logger.error("XPathExpressionException: " + e.getMessage());
+<<<<<<< HEAD
 		}
 
 		//check if nodes contain recordIdentifier (alephid)
@@ -150,20 +176,102 @@ public class MetsReader
 	public void initDomParsing(String recordIdentifier)
 	{
 		String metsPostion;
+=======
+		}		
+		
+		logger.debug("mets id sections: " + nodes.getLength());
 
+		//check if nodes contains recordIdentifier (alephid)
+		for(int i=0; i<nodes.getLength(); i++) 
+		{
+			Node node = nodes.item(i);
+			
+			if(node.getTextContent().equals(recordIdentifier))
+			{
+				returnVal = true;
+				break;
+			}
+		}	
+		
+		return returnVal;
+	}
+	
+
+	/**
+	 * Returns mets section id that contains recordIdentifier
+	 * If it cannot be found "0" is returned
+	 * 
+	 * @param recordIdentifier
+	 * @return integer
+	 */
+	private int findSectionId(String recordIdentifier)
+	{
+		String xPath = config.getXpathSearchId();
+		int returnInt = 0;
+		NodeList nodes = null;
+		
+		//find all nodes corresponding with the xpath 'xpath-search-id'
+		try
+		{
+			XPath xpath  = XPathFactory.newInstance().newXPath();
+			
+			XPathExpression expr = xpath.compile(xPath);
+			Object result = expr.evaluate(dom, XPathConstants.NODESET);
+			nodes = (NodeList) result;
+		}
+		catch (XPathExpressionException e)
+		{
+			logger.error("XPathExpressionException: " + e.getMessage());
+		}
+>>>>>>> master
+
+		//check if nodes contain recordIdentifier (alephid)
+		for(int i=0; i<nodes.getLength(); i++) 
+		{
+			Node node = nodes.item(i);
+			
+			if(node.getTextContent().equals(recordIdentifier))
+			{
+				returnInt = i+1; //nodes are arrays starting at 0 BUT xpath start at 1
+				break;
+			}
+		}
+		
+		return returnInt;
+	}
+	
+	
+	/**
+	 * DOM parsing and extracting data into Mets object
+	 * 
+	 */
+	public void initDomParsing(String recordIdentifier)
+	{
+		String metsPostion;
+		
 		if(dom != null)
 		{
 			metsPostion = Integer.toString(findSectionId(recordIdentifier));
 
+<<<<<<< HEAD
 			logger.debug(config.getXpathDOI().replace(config.getXpathReplaceSection(), metsPostion));
 			logger.debug(extractAlephid(metsPostion));
 			logger.debug(config.getXpathAlephID().replace(config.getXpathReplaceSection(), metsPostion));
+=======
+			logger.debug(config.getXpathAlephID().replace(config.getXpathReplaceSection(), metsPostion));
+			logger.debug(extractAlephid(metsPostion));
+			logger.debug(config.getXpathDOI().replace(config.getXpathReplaceSection(), metsPostion));
+>>>>>>> master
 			logger.debug(extractDoi(metsPostion));
 			logger.debug(config.getXpathAlternativeTitle().replace(config.getXpathReplaceSection(), metsPostion));
 			logger.debug(extractAlternativeTitle(metsPostion));
 			logger.debug(config.getXpathLocation().replace(config.getXpathReplaceSection(), metsPostion));
 			logger.debug(extractLocation(metsPostion));
+<<<<<<< HEAD
 
+=======
+			
+>>>>>>> master
 			getMets().setAlephid(extractAlephid(metsPostion));
 			getMets().setDoi(extractDoi(metsPostion));
 			getMets().setAlternativeTitle(extractAlternativeTitle(metsPostion));
@@ -175,7 +283,11 @@ public class MetsReader
 
 	/**
 	 * Extract doi from DOM
+<<<<<<< HEAD
 	 *
+=======
+	 * 
+>>>>>>> master
 	 * @param String sectionId
 	 * @return String doi
 	 */
@@ -188,7 +300,11 @@ public class MetsReader
 
 	/**
 	 * Extract AlephID from DOM
+<<<<<<< HEAD
 	 *
+=======
+	 * 
+>>>>>>> master
 	 * @param String sectionId
 	 * @return String Aleph ID
 	 */
@@ -202,7 +318,11 @@ public class MetsReader
 
 	/**
 	 * Extract alternative title from DOM
+<<<<<<< HEAD
 	 *
+=======
+	 * 
+>>>>>>> master
 	 * @param String sectionId
 	 * @return String alternative title
 	 */
@@ -215,7 +335,11 @@ public class MetsReader
 
 	/**
 	 * Extract location from DOM
+<<<<<<< HEAD
 	 *
+=======
+	 * 
+>>>>>>> master
 	 * @param Document sectionId
 	 * @return String location
 	 */

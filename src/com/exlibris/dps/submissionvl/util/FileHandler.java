@@ -305,7 +305,7 @@ public class FileHandler
 	 * 
 	 * @return String extract path
 	 */
-	private String getExtractAlephIDPath()
+	public String getExtractAlephIDPath()
 	{
 		return config.getExtractPath() + getWorkingPath().getName() + config.getSipDataPath()
 				+ getAlephID() + ConfigProperties.getFileSeparator();
