@@ -1,17 +1,9 @@
-<<<<<<< HEAD
-# Submission application for Visual Library #
-=======
 # Submission application for Visual Library
->>>>>>> master
 
 Application that picks up zipped SIP capsules , extracts them, creates Rosetta mets.xml and copies everything to a target location.
 Java Application started by separate shell script.
 
-<<<<<<< HEAD
-## Application start ##
-=======
 ## Application start
->>>>>>> master
 
 com.exlibris.dps.submissionvl.AppStarter "config.test.properties" "log4j.properties" "7777"
 
@@ -19,11 +11,7 @@ com.exlibris.dps.submissionvl.AppStarter "config.test.properties" "log4j.propert
 * parameter 2: log4j configuration
 * parameter 3: [optional] port number, default: 7777
 
-<<<<<<< HEAD
-## Current Version: 1.5.1 ##
-=======
 ## Current Version: 1.6
->>>>>>> master
 
 ### TODO ###
 
@@ -32,16 +20,6 @@ com.exlibris.dps.submissionvl.AppStarter "config.test.properties" "log4j.propert
   * implementing and handling of status
   * alephid and maybe mets section
   * note: removes complete file base tracking logic
-<<<<<<< HEAD
-* Validation of source data
-  * hardening: check if source folder structure has only allowed folders
-  * hardening: check file types
-  * add third folder for import (transcript)
-
-### VERSION HISTORY ###
-
-### version 1.5.1 (2018-11-20) ###
-=======
 * Flexible validation of sources data structure
   * add third folder for import (transcription)
 
@@ -61,7 +39,6 @@ com.exlibris.dps.submissionvl.AppStarter "config.test.properties" "log4j.propert
 * lock will be removed once current run has ended
 
 ### version 1.5.1 (2018-11-20)
->>>>>>> master
 * finding the correct alephid in mets that is also part of the file name (1.5)
   * extracting all relevant data from mets section that contains aleph id
   * doi, title, shelf location
@@ -69,16 +46,6 @@ com.exlibris.dps.submissionvl.AppStarter "config.test.properties" "log4j.propert
   * note: refactoring of many key elements in code base
 * Lock file to show which job is running (1.5.1)
 
-<<<<<<< HEAD
-### version 1.4.3 (2018-10-31) ###
-* small refactoring of config file call
-
-### version 1.4.2 (2018-10-30) ###
-* version directory added
-* version file moved to directory
-
-### version 1.4.1 (2018-10-16) ###
-=======
 ### version 1.4.3 (2018-10-31)
 * small refactoring of config file call
 
@@ -87,7 +54,6 @@ com.exlibris.dps.submissionvl.AppStarter "config.test.properties" "log4j.propert
 * version file moved to directory
 
 ### version 1.4.1 (2018-10-16)
->>>>>>> master
 * version output in log
 * define individual log4j file location
 * define individual port per run
@@ -100,11 +66,7 @@ com.exlibris.dps.submissionvl.AppStarter "config.test.properties" "log4j.propert
 
 ### version 1.3
 * added ability to handle fulltext folders in SIP_STATUS
-<<<<<<< HEAD
-* updated config.properties for fulltext file handling
-=======
 * updated config.properties for fulltext file ha ####ndling
->>>>>>> master
 * updated config.properties for e-rara and e-manuscripta sources
 * fixed time calcucation error for updating listing file content
 
