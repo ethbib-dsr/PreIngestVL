@@ -25,11 +25,11 @@ public class Mets
 	static final String FILELABEL = "filelabel";
 
 	static final String DOI = "doi";
-	static final String ALEPHID = "alephid";
+	static final String SYSTEMID = "systemid";
 	static final String ALT_TITLE = "altTitle";
 	static final String LOCATION = "location";
 
-	private String alephid;
+	private String recordIdentifier;
 	private String doi;
 	private String altTitle;
 	private String location;
@@ -70,24 +70,24 @@ public class Mets
 	
 
 	/**
-	 * Getter for alephid
+	 * Getter for recordIdentifier
 	 * 
-	 * @return String alephid
+	 * @return String recordIdentifier
 	 */
-	public String getAlephid()
+	public String getRecordIdentifier()
 	{
-		return alephid;
+		return recordIdentifier;
 	}
 
 
 	/**
-	 * Setter for alephid
+	 * Setter for recordIdentifier
 	 * 
-	 * @param alephid
+	 * @param recordIdentifier
 	 */
-	public void setAlephid(String alephid)
+	public void setRecordIdentifier(String recordIdentifier)
 	{
-		this.alephid = alephid;
+		this.recordIdentifier = recordIdentifier;
 	}
 
 
@@ -160,7 +160,7 @@ public class Mets
 	@Override
 	public String toString()
 	{
-		return "Mets [alephid=" + alephid + ", doi=" + doi + ", fileList=" + fileList + "]";
+		return "Mets [systemid=" + recordIdentifier + ", doi=" + doi + ", fileList=" + fileList + "]";
 	}
 
 }

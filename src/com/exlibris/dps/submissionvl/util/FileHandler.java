@@ -12,6 +12,8 @@ import java.io.OutputStream;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
@@ -24,7 +26,6 @@ import java.util.zip.ZipInputStream;
 import org.apache.log4j.Logger;
 
 import com.exlibris.dps.submissionvl.ConfigProperties;
-
 
 
 /**
@@ -276,24 +277,22 @@ public class FileHandler
 	
 
 	/**
-	 * extracts 9 digit Aleph ID from file name of current file
+	 * extracts systemID, either AlephID or DOI, depending on capsule type
 	 * 
 	 * @return 9 digit String
 	 */
-	public String getAlephID()
+	private String getSystemID()
 	{
 		String result = "";
-		String fileName = getWorkingPath().getName();
-		String regexString = "";
 		
-		regexString = config.getRegexAlephId();
-		Pattern regexPattern = Pattern.compile(regexString);
-		//Pattern regexPattern = Pattern.compile("(^\\d{9})");
-		Matcher match = regexPattern.matcher(fileName);
+		String fileNameArray[] = getWorkingPath().getName().split(SourceSip.SPLITTER_FILENAME);
 		
-		if(match.find())
-		{
-			result = match.group(0);
+		if (fileNameArray.length > 4) {
+			// DOI capsule, 10_3931_e-rara-10_20200916T063233_gen7_ver1.zip			
+			result = fileNameArray[0]+"_"+fileNameArray[1]+"_"+fileNameArray[2];			
+		} else {
+			// AlephID capsule, 006484184_20110727T230147_master_ver1.zip 
+			result = fileNameArray[0];
 		}
 		
 		return result;
@@ -305,10 +304,10 @@ public class FileHandler
 	 * 
 	 * @return String extract path
 	 */
-	public String getExtractAlephIDPath()
+	public String getExtractSystemIDPath()
 	{
 		return config.getExtractPath() + getWorkingPath().getName() + config.getSipDataPath()
-				+ getAlephID() + ConfigProperties.getFileSeparator();
+				+ getSystemID() + ConfigProperties.getFileSeparator();
 	}
 	
 	
@@ -393,24 +392,28 @@ public class FileHandler
 		return imageHashPair;
 	}
 	
-	
 	/**
-	 * returns Map of name and hash of all fulltext xml files in SIP/zip
+	 * returns Map of name and hash of all text xml files in SIP/zip
 	 * 
 	 * @return Map<String, String>
 	 */
-	public Map<String, String> getFulltextHashPairMap()
+	public Map<String, String> getTextHashPairMap()
 	{
-		Map<String, String> fulltextHashPair = new HashMap<String, String>();
+		Map<String, String> textHashPair = new HashMap<String, String>();
 		
-		for(String fulltextName : getFulltextFilesArray())
-		{
-			String fulltextFilePath = getFulltextFilePath() + fulltextName;
-			fulltextHashPair.put(fulltextName, getMd5Hash(fulltextFilePath));
+		for (String singleDir : config.getSipTextDirectories()) {		
+			String[] singleDirList = getTextFilesArray(singleDir);
+			if (singleDirList != null) {				
+				for(String textName : singleDirList)
+				{
+					String textFilePath = getTextFilePath(singleDir) + textName;
+					textHashPair.put(textName, getMd5Hash(textFilePath));
+				}
+			}
 		}
 		
-		return fulltextHashPair;
-	}
+		return textHashPair;
+	}	
 	
 	
 	/**
@@ -445,26 +448,25 @@ public class FileHandler
 	{
 		String path = "";
 		
-		path = getExtractAlephIDPath().subSequence(0, getExtractAlephIDPath().length() - 1) + config.getSipImageDirectory();
+		path = getExtractSystemIDPath().subSequence(0, getExtractSystemIDPath().length() - 1) + config.getSipImageDirectory();
 		
 		return path;
 	}
 	
-	
 	/**
-	 * returns path to fulltext files 
+	 * returns path to text files (26-08-2020 - fulltext or transcription at the moment) 
 	 * 
 	 * @param config
 	 * @return
 	 */
-	public String getFulltextFilePath()
+	public String getTextFilePath(String singleDir)
 	{
 		String path = "";
 		
-		path = getExtractAlephIDPath().subSequence(0, getExtractAlephIDPath().length() - 1) + config.getSipFulltextDirectory();
+		path = getExtractSystemIDPath().subSequence(0, getExtractSystemIDPath().length() - 1) + singleDir;
 		
 		return path;
-	}
+	}	
 	
 	
 	
@@ -497,7 +499,7 @@ public class FileHandler
 	 */
 	public String[] getImageFilesArray()
 	{
-		String imagePath = getExtractAlephIDPath() + config.getSipImageDirectory();
+		String imagePath = getExtractSystemIDPath() + config.getSipImageDirectory();
 
 		FileHandler imageFolder = new FileHandler(imagePath, config);
 
@@ -509,20 +511,54 @@ public class FileHandler
 
 	/**
 	 * Helper method
-	 * return an array of String containing all fulltext xml files of the SIP file supplied
+	 * return an array of String containing all text xml files of the SIP file supplied
 	 * 
 	 * @return String[]
 	 */
-	public String[] getFulltextFilesArray()
+	
+	public String[] getTextFilesArray()
 	{
-		String fulltextPath = getExtractAlephIDPath() + config.getSipFulltextDirectory();
+		ArrayList<String> allTextFiles = new ArrayList<String>();
+		
+		for (String singleDir : config.getSipTextDirectories()) {		
+			String[] singleDirList = getTextFilesArray(singleDir);
+			if (singleDirList != null) {
+				allTextFiles.addAll(Arrays.asList(singleDirList));
+			}
+		}
+		
+		// The old implementation, up to commit 00afd55, was calling getFileListArrayFromCurrentDirectory directly
+		// in this method, which, if the text directory does not exist, would return null. So we have to deliver the
+		// same result in case.
+		
+		if (allTextFiles.size() > 0) {
+			String[] stringArr = new String[allTextFiles.size()];
+			
+			// ArrayList to Array Conversion 
+	        for (int j = 0; j < allTextFiles.size(); j++) { 
+	  
+	            // Assign each value to String array 
+	        	stringArr[j] = allTextFiles.get(j); 
+	        }			
+			
+			return stringArr;	         
+	        
+		} else {
+			return null;
+		}
+		
+	}		
+	
+	private String[] getTextFilesArray(String singleDir)
+	{
+		String textPath = getExtractSystemIDPath() + singleDir;
 
-		FileHandler fulltextFolder = new FileHandler(fulltextPath, config);
+		FileHandler textFolder = new FileHandler(textPath, config);
 
-		String[] fulltextFiles = fulltextFolder.getFileListArrayFromCurrentDirectory();
+		String[] textFiles = textFolder.getFileListArrayFromCurrentDirectory();
 
-		return fulltextFiles;
-	}
+		return textFiles;
+	}	
 	
 
 	/**
@@ -535,7 +571,7 @@ public class FileHandler
 	 */
 	public File getMetsFile()
 	{
-		String metsPath = getExtractAlephIDPath() + config.getMetsFileName();
+		String metsPath = getExtractSystemIDPath() + config.getMetsFileName();
 
 		File metsFile = new File(metsPath);
 

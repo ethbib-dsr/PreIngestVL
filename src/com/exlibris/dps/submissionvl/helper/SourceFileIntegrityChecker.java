@@ -26,12 +26,12 @@ public class SourceFileIntegrityChecker
 	private final Logger logger = Logger.getLogger(this.getClass());
 	
 	private boolean integrity = true;
-	private String dbStatusNotice = "";
 	private ConfigProperties config;
 	private File currentSipFile;
 	private SourceSip currentSingleSip;
 	private FileHandler fh;
 	private File extractedSip;
+	private Set<String> integrityErrors;
 	
 	/**
 	 * Constructor that also kicks off the integrity checks
@@ -45,7 +45,8 @@ public class SourceFileIntegrityChecker
 		currentSingleSip = singleSip;
 		config = conf;
 		fh = new FileHandler(currentSipFile, config);
-		extractedSip = new File(fh.getExtractAlephIDPath());
+		extractedSip = new File(fh.getExtractSystemIDPath());
+		integrityErrors = new HashSet<String>();
 	}
 	
 	
@@ -74,8 +75,12 @@ public class SourceFileIntegrityChecker
 		Set<String> subDirectorySet = new HashSet<String>(Arrays.asList(FileOperations.getSubdirectories(extractedSip)));
 		
 		//remove all sub directories that are alloed
-		subDirectorySet.remove(FileOperations.removeSlashes(config.getSipImageDirectory()));
-		subDirectorySet.remove(FileOperations.removeSlashes(config.getSipFulltextDirectory()));
+		subDirectorySet.remove(FileOperations.removeSlashes(config.getSipImageDirectory()));		
+		// DDE-540
+		List<String> textFileDirectories = config.getSipTextDirectories();
+		for (String textDir : textFileDirectories) {
+			subDirectorySet.remove(FileOperations.removeSlashes(textDir));
+		}
 		
 		//if still sub directories left they are not allowed
 		if(subDirectorySet.size()>0)
@@ -157,12 +162,12 @@ public class SourceFileIntegrityChecker
 		{
 			MetsReader mr = new MetsReader(fh.getMetsFile().getAbsolutePath(), config);
 			
-			if(!mr.hasIdSection(currentSingleSip.getAlephID()))
+			if(!mr.hasIdSection(currentSingleSip))
 			{
 				setIntegrity(false);
 				setDbStatusNotice(config.getDbStatusIdNotinMets());
-				logger.warn(config.getIntegrityInvalidId() + " " + mr.getMets().getAlephid());
-			}
+				logger.warn(config.getIntegrityInvalidId() + " " + currentSingleSip.getFileName());
+			} 
 		}
 	}
 	
@@ -189,7 +194,7 @@ public class SourceFileIntegrityChecker
 	 */
 	private void setDbStatusNotice(String notice)
 	{
-		dbStatusNotice += (!dbStatusNotice.isEmpty()) ? (", " + notice) : notice;
+		integrityErrors.add(notice);
 	}
 	
 	
@@ -222,7 +227,7 @@ public class SourceFileIntegrityChecker
 	 */
 	public String getDbStatusNotice()
 	{
-		return dbStatusNotice;
+		return integrityErrors.toString().replace("[", "").replace("]", "");
 	}
 
 }

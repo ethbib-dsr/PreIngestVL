@@ -10,17 +10,24 @@ public class SourceSip implements Comparable<SourceSip>
 		MASTER, GEN, UNKNOWN
 	};	
 	
+	public enum CapsuleTypeEnum {
+		ALEPH, DOI, UNKNOWN
+	}
+	
 	private String fileName;
-	private String alephID;
-	private AlephTimestamp timestamp;
+	private String capsuleID;
+	private String doi;
+	private VisualLibraryTimestamp timestamp;
 	private SipTypeEnum sipType;
+	private CapsuleTypeEnum capsuleType;
 	private int genVersion;
 	private String sourcePath;
 	private String targetPath;
 	private long fileSize;
 	private String fileExtension;
+	private int position;
 	
-	private String SPLITTER_FILENAME = "_";
+	static final String SPLITTER_FILENAME = "_";
 	
 	
 	/**
@@ -32,31 +39,47 @@ public class SourceSip implements Comparable<SourceSip>
 	 * @param targetPath
 	 * @param fileSize
 	 */
-	public SourceSip(String fileName, String sourcePath, String targetPath, long fileSize)
+	public SourceSip(String fileName, String sourcePath, String targetPath, long fileSize, int position)
 	{
 		super();
 		this.fileName = fileName;
 		this.sourcePath = sourcePath;
 		this.targetPath = targetPath;
 		this.fileSize = fileSize;
+		this.position = position;
 		fillSourceSip();
 	}
 
 
 	/**
-	 * fills alephID, timestamp, sipType, genVersion for current instance
+	 * fills capsuleID (alephID or DOI), timestamp, sipType, capsuleType, genVersion for current instance
 	 * done by splitting file name into array
 	 * each element will than be handled separately
+	 * Since Version 1.7.3 capsules can either be of type alephID or DOI
+	 * e.g. alephID = 006484184_20110727T230147_master_ver1.zip
+	 *      DOI     = 10_3931_e-rara-9083_20201009T032247_gen7_ver1.zip
 	 * 
 	 */
 	private void fillSourceSip()
 	{
 		String fileNameArray[] = getFileName().split(SPLITTER_FILENAME);
-
-		setAlephID(fileNameArray[0]);
-		setTimestamp(fileNameArray[1]);
-		setSipType(extractSipType(fileNameArray[2]));
-		setGenVersion(extractVersionNumber(fileNameArray[2]));
+		
+		if (fileNameArray.length > 4) {
+			// 10_3931_e-rara-9083 --> 10.3931/e-rara-9083
+			setDOI(fileNameArray[0]+"."+fileNameArray[1]+"/"+fileNameArray[2]);
+			setCapsuleID(fileNameArray[0]+"_"+fileNameArray[1]+"_"+fileNameArray[2]);
+			setTimestamp(fileNameArray[3]);
+			setSipType(extractSipType(fileNameArray[4]));
+			setGenVersion(extractVersionNumber(fileNameArray[4]));
+			setCapsuleType(CapsuleTypeEnum.DOI);
+		} else {
+			setCapsuleID(fileNameArray[0]);
+			setTimestamp(fileNameArray[1]);
+			setSipType(extractSipType(fileNameArray[2]));
+			setGenVersion(extractVersionNumber(fileNameArray[2]));
+			setCapsuleType(CapsuleTypeEnum.ALEPH);
+		}
+		
 		setFileExtension(extractFileExtensionFromName());
 	}
 
@@ -170,33 +193,53 @@ public class SourceSip implements Comparable<SourceSip>
 
 
 	/**
-	 * alephID getter
+	 * capsuleID getter
 	 * 
 	 * @return
 	 */
-	public String getAlephID()
+	public String getCapsuleID()
 	{
-		return alephID;
+		return capsuleID;
 	}
 
 
 	/**
 	 * alephID setter
 	 * 
-	 * @param alephID
+	 * @param capsuleID
 	 */
-	public void setAlephID(String alephID)
+	public void setCapsuleID(String capsuleID)
 	{
-		this.alephID = alephID;
+		this.capsuleID = capsuleID;
+	}
+	
+	/**
+	 * DOI getter
+	 * 
+	 * @return
+	 */
+	public String getDOI()
+	{
+		return doi;
 	}
 
+
+	/**
+	 * DOI setter
+	 * 
+	 * @param alephID
+	 */
+	public void setDOI(String doi)
+	{
+		this.doi = doi;
+	}
 
 	/**
 	 * timestamp getter
 	 * 
 	 * @return
 	 */
-	public AlephTimestamp getTimestamp()
+	public VisualLibraryTimestamp getTimestamp()
 	{
 		return timestamp;
 	}
@@ -209,7 +252,7 @@ public class SourceSip implements Comparable<SourceSip>
 	 */
 	public void setTimestamp(String timestamp)
 	{
-		this.timestamp = new AlephTimestamp(timestamp);
+		this.timestamp = new VisualLibraryTimestamp(timestamp);
 	}
 
 	
@@ -275,6 +318,27 @@ public class SourceSip implements Comparable<SourceSip>
 
 
 	/**
+	 * capsuleType setter
+	 * 
+	 * @param capsuleType
+	 */
+	public void setCapsuleType(CapsuleTypeEnum capsuleType)
+	{
+		this.capsuleType = capsuleType;
+	}
+	
+	/**
+	 * capsuleType getter
+	 * 
+	 * @return CapsuleTypeEnum
+	 */
+	public CapsuleTypeEnum getCapsuleType()
+	{
+		return capsuleType;
+	}
+
+
+	/**
 	 * sipType setter
 	 * 
 	 * @param sipType
@@ -282,7 +346,7 @@ public class SourceSip implements Comparable<SourceSip>
 	public void setSipType(SipTypeEnum sipType)
 	{
 		this.sipType = sipType;
-	}
+	}	
 
 	
 	/**
@@ -330,19 +394,39 @@ public class SourceSip implements Comparable<SourceSip>
 	
 	
 	public String getAmdIdFromFilename()
-	{
-		return getAlephID() + SPLITTER_FILENAME + getTimestamp().getSourceAlephTimestamp();
+	{		
+		return getCapsuleID() + SPLITTER_FILENAME + getTimestamp().getSourceVisualLibraryTimestamp();
+	}
+	
+	
+	/**
+	 * position getter
+	 * 
+	 * @return 
+	 */
+	public int getPosition() {
+		return position;
 	}
 	
 
 	/**
-	 * compares depending on timestamp
+	 * compares depending on getPosition()
 	 * 
 	 */
 	@Override
 	public int compareTo(SourceSip otherSourceSip)
-	{
-		return fileName.compareTo(otherSourceSip.fileName); 
+	{	   
+	   // DDE-800, SourceSip compares to its size 
+	   // but on 11.11.2020, we decided, that the position in the listfile
+	   // is more important
+		
+	   if (this.getPosition() == otherSourceSip.getPosition()) {
+		   return 0;
+	   } else if (this.getPosition() > otherSourceSip.getPosition()) {
+		   return 1;
+	   } else {
+		   return -1;
+	   }   
 	}
 	
 	
@@ -352,8 +436,11 @@ public class SourceSip implements Comparable<SourceSip>
 	 */
 	public boolean equals(Object o)
 	{
-		if(! (o instanceof SourceSip))
-		{
+		if (o == this) {
+			return true;
+		}
+		
+		if (! (o instanceof SourceSip))	{
 			return false;
 		}
 		SourceSip s = (SourceSip)o;
@@ -373,14 +460,25 @@ public class SourceSip implements Comparable<SourceSip>
 
 
 	/**
-	 * make aleph id comparable
+	 * make capsuleID comparable
 	 * 
 	 * @param o Object
 	 * @return boolean
 	 */
-	public boolean sameAlephId(SourceSip s)
+	public boolean sameCapsuleID(SourceSip s)
 	{
-		return s.getAlephID().equals(getAlephID());
+		return s.getCapsuleID().equals(getCapsuleID());
+	}
+	
+	/**
+	 * make DOI comparable
+	 * 
+	 * @param o Object
+	 * @return boolean
+	 */
+	public boolean sameDOI(SourceSip s)
+	{
+		return s.getDOI().equals(getDOI());
 	}
 	
 
@@ -390,7 +488,7 @@ public class SourceSip implements Comparable<SourceSip>
 	@Override
 	public String toString()
 	{
-		return "SourceSip [fileName=" + fileName + ", alephID=" + alephID + ", timestamp="
+		return "SourceSip [fileName=" + fileName + ", capsuleID=" + capsuleID + ", DOI=" + doi + ", timestamp="
 				+ timestamp + ", sipType=" + sipType + ", genVersion=" + genVersion + ", sourcePath="
 				+ sourcePath + ", fileSize=" + fileSize + "]";
 

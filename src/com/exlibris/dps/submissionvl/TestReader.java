@@ -16,9 +16,9 @@ public class TestReader
 	private static final String TESTITEM = "000310679_20180223T010423_master_ver1.zip";
 
 
-	public TestReader(String configFilePath)
+	public TestReader(String configFilePath, String commonConfigFilePath)
 	{
-		config = new ConfigProperties(configFilePath);
+		config = new ConfigProperties(configFilePath, commonConfigFilePath);
 	}
 
 
@@ -49,7 +49,9 @@ public class TestReader
 
 	public void readerController(File item)
 	{
-		FileHandler itemFh = new FileHandler(item, config);
+		// Since DDE-796, building the path is different. FileHandler should no longer be responsible for
+		// generating the part of the file path. Instead SourceSip should be used
+		/*FileHandler itemFh = new FileHandler(item, config);
 
 		logger.debug("controller started");
 
@@ -75,7 +77,7 @@ public class TestReader
 		}
 
 
-		logger.debug("controller ended");
+		logger.debug("controller ended");*/
 	}
 
 

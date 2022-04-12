@@ -1,6 +1,7 @@
 package com.exlibris.dps.submissionvl.xml;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -223,7 +224,6 @@ public class MetsFileList
 		return filepath;
 	}
 
-
 	/**
 	 * Setter for filepath
 	 * 
@@ -233,6 +233,21 @@ public class MetsFileList
 	{
 		this.filepath = filepath;
 	}
+	
+	/**
+	 * Getter for filepathIsContained
+	 * 
+	 * @return boolean true/false
+	 */
+	public boolean filepathIsContained(List<String> textFileDirectories)
+	{
+		for (String singleDir : textFileDirectories) {
+			if (filepath.contains(singleDir)) {
+				return true;
+			}
+		}
+		return false;
+	}	
 
 	
 	public void setFilelabel(String filelabel)

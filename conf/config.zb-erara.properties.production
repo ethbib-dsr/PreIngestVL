@@ -1,0 +1,57 @@
+#   config.zb-erara.properties rossa-prod-ap23
+#
+#   by default all properties are single value
+#   you cannot make a property from single value to multi values
+#   without adjusting  ConfigProperties.java
+#   multi value properties are labeled as such
+
+#general paths on server
+#will be switched when all old data has been processed
+source-path=/transdata/
+pre-extract-path=/deposit_storage/zb_erara/pre_extract/
+extract-path=/deposit_storage/zb_erara/processing/
+target-path=/deposit_storage/zb_erara/ingest/
+
+#multiple values separated by comma allowed
+allowed-image-file-endings=tif
+
+#maximum number of valid sources to run per execution per institute
+max-source-files=0
+#max number of Gigabyte [G for gigabyte | M for megabyte | otherwise only byte]
+max-source-file-size=700G
+#Max number of accumulated size of all imported SIPs. [G for gigabyte | M for megabyte | otherwise only byte].
+max-import-size=2G
+
+#age in days of listing file content before it gets a new refresh
+listing-file-age=1
+listing-file-name=zb_erara_list.txt
+
+#regex String zum Finden der Aleph ID
+regex-alephid=(^\\d{9})
+
+#DC:isPartOf path building for ie.xml
+#TODO: dissolve or cleverer naming
+xml-domain-root = zb-e-rara
+xml-dc-institute = zuz
+
+xml-cms-system = EBI01
+xml-dcterms-alternative =
+xml-dc-source =
+xml-general-ie-entitytype = ZB-Rara
+
+db-connection-url = jdbc:oracle:thin:@rossa-test-db.ethz.ch:1521:dps
+db-username = usr_zb_e_rara
+db-password = XjrhK45a
+
+db-erara-table = V2L1_ROS00.TRACKING_ZB_ERARA
+db-insert-workspace-id = zb-e-rara
+db-select-count-where = where substr(AMD_ID, 0, 9) =
+
+#cleanup source files, when item has status FINISHED. This section has to be adjusted for each job
+# Values cleanup-active: TRUE/FALSE
+cleanup-active = TRUE
+#items are not deleted physically and status is not set, but they are listed
+# Values cleanup-simulation-mode: TRUE/FALSE
+cleanup-simulation-mode = TRUE
+cleanup-number-of-files = 10
+cleanup-finished-age-delta = 10

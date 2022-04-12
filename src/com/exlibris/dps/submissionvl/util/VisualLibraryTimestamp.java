@@ -1,34 +1,34 @@
 package com.exlibris.dps.submissionvl.util;
 
-public class AlephTimestamp implements Comparable<AlephTimestamp>
+public class VisualLibraryTimestamp implements Comparable<VisualLibraryTimestamp>
 {
-	private String sourceAlephTimestamp;
+	private String visualLibraryTimestamp;
 	private int intDate;
 	private int intTime;
 	private final String SPLITTER = "T"; 
 	
 
-	public AlephTimestamp(String alephTimestamp)
+	public VisualLibraryTimestamp(String visualLibraryTimestamp)
 	{
-		this.sourceAlephTimestamp = alephTimestamp;
+		this.visualLibraryTimestamp = visualLibraryTimestamp;
 		splitSourceTimestamp();
 	}
 
 	private void splitSourceTimestamp()
 	{
-		String[] timeArray = getSourceAlephTimestamp().split(SPLITTER,2);
+		String[] timeArray = getSourceVisualLibraryTimestamp().split(SPLITTER,2);
 		setIntDate(Integer.parseInt(timeArray[0]));
 		setIntTime(Integer.parseInt(timeArray[1]));
 	}
 	
-	public String getSourceAlephTimestamp()
+	public String getSourceVisualLibraryTimestamp()
 	{
-		return sourceAlephTimestamp;
+		return visualLibraryTimestamp;
 	}
 
-	public void setSourceAlephTimestamp(String sourceAlephTimestamp)
+	public void setSourceVisualLibraryTimestamp(String sourceVisualLibraryTimestamp)
 	{
-		this.sourceAlephTimestamp = sourceAlephTimestamp;
+		this.visualLibraryTimestamp = sourceVisualLibraryTimestamp;
 	}
 
 	public int getIntDate()
@@ -52,7 +52,7 @@ public class AlephTimestamp implements Comparable<AlephTimestamp>
 	}
 
 	@Override
-	public int compareTo(AlephTimestamp ts)
+	public int compareTo(VisualLibraryTimestamp ts)
 	{
 		if(this.getIntDate() > ts.getIntDate())
 		{
@@ -82,16 +82,16 @@ public class AlephTimestamp implements Comparable<AlephTimestamp>
 	@Override
 	public String toString()
 	{
-		return "AlephTimestamp [sourceAlephTimestamp=" + sourceAlephTimestamp + ", intDate="
+		return "VisualLibraryTimestamp [sourceVisualLibraryTimestamp=" + visualLibraryTimestamp + ", intDate="
 				+ intDate + ", intTime=" + intTime + "]";
 	}
 
 	@Override
 	public boolean equals(Object obj)
 	{
-		if (!(obj instanceof AlephTimestamp)) return false;
+		if (!(obj instanceof VisualLibraryTimestamp)) return false;
 		
-		AlephTimestamp ts = (AlephTimestamp) obj;
+		VisualLibraryTimestamp ts = (VisualLibraryTimestamp) obj;
 		
 		return ts.getIntDate()==this.getIntDate() && ts.getIntTime()==this.getIntTime();
 	}
@@ -99,7 +99,7 @@ public class AlephTimestamp implements Comparable<AlephTimestamp>
 	@Override 
 	public int hashCode() 
 	{
-		return getSourceAlephTimestamp().hashCode();
+		return getSourceVisualLibraryTimestamp().hashCode();
 	}
 	
 

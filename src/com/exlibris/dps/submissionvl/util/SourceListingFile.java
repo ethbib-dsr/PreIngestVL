@@ -11,6 +11,7 @@ import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
@@ -118,7 +119,9 @@ public class SourceListingFile
 	 */
 	public Map<String, Long> getListingFileContent()
 	{
-		Map<String, Long> fileContent = new HashMap<String, Long>();
+		// AB 11.11.2020 - to preserve the order of the source list, we need a
+		// LinkedHashMap.
+		Map<String, Long> fileContent = new LinkedHashMap<String, Long>();
 		BufferedReader reader = null;
 		
 		//start readout with tons of exception handling

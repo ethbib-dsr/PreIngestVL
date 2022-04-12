@@ -20,6 +20,8 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.exlibris.dps.submissionvl.ConfigProperties;
+import com.exlibris.dps.submissionvl.util.SourceSip;
+import com.exlibris.dps.submissionvl.util.SourceSip.CapsuleTypeEnum;
 
 /**
  * MetsReader Object
@@ -32,6 +34,20 @@ import com.exlibris.dps.submissionvl.ConfigProperties;
  */
 public class MetsReader
 {
+	// DDE-796, analysing and parsing the mets is done with a different approach
+	// these constants are arguments for finding the elements in dom
+	final static String STRUCT_LINK            = "mets:structLink";
+	final static String STRUCT_LINK_TO         = "xlink:to";
+	final static String STRUCT_LINK_FROM       = "xlink:from";
+	final static String STRUCT_LINK_PHYSROOT   = "physroot";
+	final static String STRUCT_MAP             = "mets:structMap";
+	final static String STRUCT_MAP_SRCH_ATTR   = "TYPE";
+	final static String STRUCT_MAP_SRCH_VALUE  = "LOGICAL";
+	final static String STRUCT_MAP_KEY_ATTR    = "ID";
+	final static String STRUCT_MAP_RETURN_ATTR = "DMDID";
+	final static String DMD_SECTION            = "mets:dmdSec";
+	final static String DMD_SECTION_ID_ATTR    = "ID";
+	
 	private final Logger logger = Logger.getLogger(this.getClass());
 
 	private ConfigProperties config;
@@ -59,114 +75,217 @@ public class MetsReader
 	 *
 	 * @param recordIdentifier
 	 * @return boolean
+	 * @throws Exception 
 	 */
-	public boolean hasIdSection(String recordIdentifier)
+	public boolean hasIdSection(SourceSip singleSip) 
 	{
-		String xPath = config.getXpathSearchId();
-		NodeList nodes = null;
 		boolean returnVal = false;
-
-		//find all nodes corresponding with the xpath 'xpath-search-id'
-		try
-		{
-			XPath xpath  = XPathFactory.newInstance().newXPath();
-
-			XPathExpression expr = xpath.compile(xPath);
-			Object result = expr.evaluate(dom, XPathConstants.NODESET);
-			nodes = (NodeList) result;
-		}
-		catch (XPathExpressionException e)
-		{
-			logger.error("XPathExpressionException: " + e.getMessage());
-		}
-
-		logger.debug("mets id sections: " + nodes.getLength());
-
-		//check if nodes contains recordIdentifier (alephid)
-		for(int i=0; i<nodes.getLength(); i++)
-		{
-			Node node = nodes.item(i);
-
-			if(node.getTextContent().equals(recordIdentifier))
-			{
-				returnVal = true;
-				break;
+		
+		String sectionID;
+		
+		try {
+			//sectionID = getDMSecWithItemInfo();
+			// DDE-881: to iterate over all dmdSec nodes and find the right one with the metadata we need, we have to pass singleSip
+			sectionID = getDMSecWithItemInfo(singleSip);
+			
+			if (singleSip.getCapsuleType() == CapsuleTypeEnum.ALEPH) {
+				returnVal = singleSip.getCapsuleID().equals(extractRecordIdentifier(sectionID));				
+			} else if (singleSip.getCapsuleType() == CapsuleTypeEnum.DOI) {
+				returnVal = singleSip.getDOI().equals(extractDoi(sectionID));				
+			} else {
+				logger.warn("Could not check for id section. Unknown capsule type for "+singleSip.getFileName());
 			}
+		} catch (Exception e) {
+			logger.warn("Exception occured when querying section id: "+e.getMessage());
 		}
+
 
 		return returnVal;
 	}
 
-
-	/**
-	 * Returns mets section id that contains recordIdentifier
-	 * If it cannot be found "0" is returned
-	 *
-	 * @param recordIdentifier
-	 * @return integer
-	 */
-	private int findSectionId(String recordIdentifier)
-	{
-		String xPath = config.getXpathSearchId();
-		int returnInt = 0;
-		NodeList nodes = null;
-
-		//find all nodes corresponding with the xpath 'xpath-search-id'
-		try
+	
+	//DDE-881: new version, where all dmdSec are parsed for the correct alephID or DOI	
+	private String getDMSecWithItemInfo(SourceSip singleSip) throws Exception {
+	
+		NodeList dmdSections = null;	
+		String dmdSecID = "";
+		
+		dmdSections = dom.getElementsByTagName(DMD_SECTION);
+		
+		for(int i=0; i<dmdSections.getLength(); i++)
 		{
-			XPath xpath  = XPathFactory.newInstance().newXPath();
-
-			XPathExpression expr = xpath.compile(xPath);
-			Object result = expr.evaluate(dom, XPathConstants.NODESET);
-			nodes = (NodeList) result;
+			Node node = dmdSections.item(i);
+			String sectionID = node.getAttributes().getNamedItem(DMD_SECTION_ID_ATTR).getTextContent();
+			
+			if (singleSip.getCapsuleType() == CapsuleTypeEnum.ALEPH) {
+				if (singleSip.getCapsuleID().equals(extractRecordIdentifier(sectionID))) {
+					dmdSecID = sectionID;
+					break;
+				}
+			} else if (singleSip.getCapsuleType() == CapsuleTypeEnum.DOI) {
+				if (singleSip.getDOI().equals(extractDoi(sectionID))) {
+					dmdSecID = sectionID;
+					break;
+				}
+			} else {
+				throw new Exception("MetsReader.getDMSecWithItemInfo: Capsule type not valid");
+			}
+		}	
+		
+		if (dmdSecID.isEmpty()) {
+			throw new Exception("MetsReader.getDMSecWithItemInfo: No dmdSec ID found.");
 		}
-		catch (XPathExpressionException e)
-		{
-			logger.error("XPathExpressionException: " + e.getMessage());
-		}
-
-		//check if nodes contain recordIdentifier (alephid)
-		for(int i=0; i<nodes.getLength(); i++)
-		{
-			Node node = nodes.item(i);
-
-			if(node.getTextContent().equals(recordIdentifier))
-			{
-				returnInt = i+1; //nodes are arrays starting at 0 BUT xpath start at 1
-				break;
+		
+		return dmdSecID;
+	}	
+	
+	// start: new way of parsing mets
+	
+	/*private String getDMSecWithItemInfo() throws Exception 
+	{		
+		return getDMSecIDFromLogicalStructMap(getStructMapIDFromStructLink());		
+	}
+	
+	private String getDMSecIDFromLogicalStructMap(String idValue) throws Exception {
+		
+		String dmdSecID = "";
+		
+		Node logicalStructMap = getLogicalStructMap();
+		
+		
+		if (logicalStructMap == null) {
+			throw new Exception("MetsReader: Logical struct map not found!");
+		} else {		
+			if (idValue != null) {
+				dmdSecID = getStructMapChildWithID(logicalStructMap, idValue);
+				if (dmdSecID == null) {
+					throw new Exception("MetsReader: No dmdSec ID found.");
+				}
+			} else {
+				NodeList childs = logicalStructMap.getChildNodes();
+				
+				if (childs.getLength() > 0) {
+					// without a structLink node, the first child in structMap does contain the physical root item
+					dmdSecID = childs.item(0).getAttributes().getNamedItem(STRUCT_MAP_RETURN_ATTR).getTextContent();					
+				} else {
+					throw new Exception("MetsReader: Logical struct map has no children nodes!");
+				}
 			}
 		}
-
-		return returnInt;
+		
+		return dmdSecID;
 	}
+	
+	private String getStructMapChildWithID(Node logicalStructMapNode, String idValue) {
+		
+		String dmdID = null;
+		
+		NodeList childs = logicalStructMapNode.getChildNodes();		
 
+		for(int i=0; i<childs.getLength(); i++)
+		{
+			Node node = childs.item(i);
+
+			if(node.getAttributes().getNamedItem(STRUCT_MAP_KEY_ATTR).getTextContent().equals(idValue))
+			{
+				dmdID = node.getAttributes().getNamedItem(STRUCT_MAP_RETURN_ATTR).getTextContent();
+				break;
+			}
+			
+			dmdID = getStructMapChildWithID(node, idValue);
+			
+			if (dmdID != null) {
+				break;
+			}
+		}		
+		
+		return dmdID; 
+	}
+	
+	private Node getLogicalStructMap() {
+		NodeList structMaps = null;
+		Node logicalStructMap = null;
+		
+		structMaps = dom.getElementsByTagName(STRUCT_MAP);
+		
+		for(int i=0; i<structMaps.getLength(); i++)
+		{
+			Node node = structMaps.item(i);
+
+			if(node.getAttributes().getNamedItem(STRUCT_MAP_SRCH_ATTR).getTextContent().equals(STRUCT_MAP_SRCH_VALUE))
+			{
+				logicalStructMap = node;
+				break;
+			}
+		}		
+		
+		return logicalStructMap;
+	}	
+	
+	private String getStructMapIDFromStructLink() {
+		String structMapID = null;
+		
+		NodeList structLinkItems = null;
+		NodeList structLinks = null;		
+		
+		structLinks = dom.getElementsByTagName(STRUCT_LINK);
+		
+		// we assume, that if a structLink element is provided, that there is only 1
+		if (structLinks.getLength() > 0) {
+			structLinkItems = structLinks.item(0).getChildNodes();
+			
+			for(int i=0; i<structLinkItems.getLength(); i++)
+			{
+				Node node = structLinkItems.item(i);
+
+				if(node.getAttributes().getNamedItem(STRUCT_LINK_TO).getTextContent().equals(STRUCT_LINK_PHYSROOT))
+				{
+					structMapID = node.getAttributes().getNamedItem(STRUCT_LINK_FROM).getTextContent();
+					break;
+				}
+			}
+			
+		}		
+		
+		return structMapID;		
+	}*/
+	
+	// end: new way of parsing mets
 
 	/**
 	 * DOM parsing and extracting data into Mets object
+	 * @throws Exception 
 	 *
 	 */
-	public void initDomParsing(String recordIdentifier)
+	public void initDomParsing(SourceSip singleSip) throws Exception
 	{
-		String metsPostion;
+		String metsSectionID;
 
 		if(dom != null)
 		{
-			metsPostion = Integer.toString(findSectionId(recordIdentifier));
+			//metsSectionID = getDMSecWithItemInfo(singleSip);
+			//DDE-881: to iterate over all dmdSec nodes and find the right one with the metadata we need, we have to pass singleSip
+			metsSectionID = getDMSecWithItemInfo(singleSip);
 
-			logger.debug(config.getXpathAlephID().replace(config.getXpathReplaceSection(), metsPostion));
-			logger.debug(extractAlephid(metsPostion));
-			logger.debug(config.getXpathDOI().replace(config.getXpathReplaceSection(), metsPostion));
-			logger.debug(extractDoi(metsPostion));
-			logger.debug(config.getXpathAlternativeTitle().replace(config.getXpathReplaceSection(), metsPostion));
-			logger.debug(extractAlternativeTitle(metsPostion));
-			logger.debug(config.getXpathLocation().replace(config.getXpathReplaceSection(), metsPostion));
-			logger.debug(extractLocation(metsPostion));
+			logger.debug(config.getXpathSystemID().replace(config.getXpathReplaceSection(), metsSectionID));
+			logger.debug(extractRecordIdentifier(metsSectionID));
+			logger.debug(config.getXpathDOI().replace(config.getXpathReplaceSection(), metsSectionID));
+			String extractedDOI = extractDoi(metsSectionID);
+			logger.debug(extractedDOI);
+			// DDE-795
+			if (extractedDOI.trim().length() == 0) {
+				logger.warn("No DOI found in mets.");
+			}			
+			logger.debug(config.getXpathAlternativeTitle().replace(config.getXpathReplaceSection(), metsSectionID));
+			logger.debug(extractAlternativeTitle(metsSectionID));
+			logger.debug(config.getXpathLocation().replace(config.getXpathReplaceSection(), metsSectionID));
+			logger.debug(extractLocation(metsSectionID));
 
-			getMets().setAlephid(extractAlephid(metsPostion));
-			getMets().setDoi(extractDoi(metsPostion));
-			getMets().setAlternativeTitle(extractAlternativeTitle(metsPostion));
-			getMets().setLocation(extractLocation(metsPostion));
-			addFilelistToMets(dom.getElementsByTagName(config.getFileNodeName()));
+			getMets().setRecordIdentifier(extractRecordIdentifier(metsSectionID));
+			getMets().setDoi(extractedDOI);
+			getMets().setAlternativeTitle(extractAlternativeTitle(metsSectionID));
+			getMets().setLocation(extractLocation(metsSectionID));
+			addFilelistToMets(dom.getElementsByTagName(config.getFileNodeName()), singleSip);
 		}
 	}
 
@@ -185,17 +304,16 @@ public class MetsReader
 
 
 	/**
-	 * Extract AlephID from DOM
+	 * Extract recordIdentifier from DOM
 	 *
 	 * @param String sectionId
-	 * @return String Aleph ID
+	 * @return String recordIdentifier
 	 */
-	private String extractAlephid(String sectionId)
+	private String extractRecordIdentifier(String sectionId)
 	{
-		return getTextContentFromXPath(config.getXpathAlephID().replace(
+		return getTextContentFromXPath(config.getXpathSystemID().replace(
 						config.getXpathReplaceSection(), sectionId));
 	}
-
 
 
 	/**
@@ -265,7 +383,7 @@ public class MetsReader
 	 *
 	 * @param NodeList nl
 	 */
-	private void addFilelistToMets(NodeList nl)
+	private void addFilelistToMets(NodeList nl, SourceSip singleSip)
 	{
 		NodeList nodeList = nl;
 
@@ -288,7 +406,7 @@ public class MetsReader
 
 				Element subElm = (Element) elm.getElementsByTagName(config.getFilenameNodeName()).item(0);
 
-				metsFileList.setFilepath(getMets().getAlephid() + ConfigProperties.getFileSeparator() + subElm.getAttribute(config.getFilenameAttributeName()));
+				metsFileList.setFilepath(singleSip.getCapsuleID() + ConfigProperties.getFileSeparator() + subElm.getAttribute(config.getFilenameAttributeName()));
 				metsFileList.setFilename(extractFileNameFromXlink(subElm.getAttribute(config.getFilenameAttributeName())));
 				metsFileList.setFilelabelFromFilename();
 

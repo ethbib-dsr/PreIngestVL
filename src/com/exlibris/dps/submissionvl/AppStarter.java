@@ -34,7 +34,7 @@ public class AppStarter {
 	private static final String APP_NAME = "submissionvl";
 	private static final String VERSION_FILE = "version/version.txt";
 
-	private static final String CONF_EXTENSION = ".properties";
+	public static final String CONF_EXTENSION = ".properties";
 
 	private static String VERSION = "unknown";
 	private static String BUILD = "unknown";
@@ -58,6 +58,7 @@ public class AppStarter {
 		else
 		{
 			File configFile = new File(System.getProperty("user.dir") + File.separator + CONF_DIR + File.separator + args[0]);
+			File defaultConfigFile = new File(System.getProperty("user.dir") + File.separator + CONF_DIR + File.separator + "config.default.properties");			
 			File log4jFile = new File(System.getProperty("user.dir") + File.separator + CONF_DIR + File.separator + args[1]);
 
 			//if a third value exists, use it as port
@@ -71,6 +72,13 @@ public class AppStarter {
 				System.exit(1);
 			}
 
+			//check if defaultConfigFile file really exists
+			if(!defaultConfigFile.exists())
+			{
+				System.out.println("config file '" + defaultConfigFile.getAbsolutePath() + "' does not exist.");
+				System.exit(1);
+			}			
+
 			//check if log4j file really exists
 			if(!log4jFile.exists())
 			{
@@ -82,7 +90,7 @@ public class AppStarter {
 			getVersionAndBuild();
 
 			//start actual initialsation
-			init(configFile, log4jFile, port);
+			init(defaultConfigFile, configFile, log4jFile, port);
 		}
 	}
 
@@ -94,10 +102,11 @@ public class AppStarter {
 	 * @param log4jRelativePath
 	 * @param port
 	 */
-	public static void init(File configFile, File log4jFile, int port)
+	public static void init(File defaultConfigFile, File configFile, File log4jFile, int port)
 	{
 
 		String configRelativePath = CONF_DIR + File.separator + configFile.getName();
+		String defaultConfigRelativePath = CONF_DIR + File.separator + defaultConfigFile.getName();		
 		String log4jRelativePath = CONF_DIR + File.separator + log4jFile.getName();
 		Path lockFilePath = Paths.get(System.getProperty("user.dir") + File.separator
 									+ configFile.getName().replaceAll(CONF_EXTENSION, "") + ".lock");
@@ -134,8 +143,20 @@ public class AppStarter {
 		}
 
 		//Start actual application
-		final SubmissionSingleton subApp = SubmissionSingleton.getInstance(configRelativePath);
+		final SubmissionSingleton subApp = SubmissionSingleton.getInstance(configRelativePath, defaultConfigRelativePath);
 		subApp.init();
+		
+		//close pseudo server app 
+		try
+		{
+			s.close();
+		}
+		catch (IOException e)
+		{
+			logger.error("Unexpected error: " + e.getMessage());
+			System.exit(2);
+		}
+		
 		//lock file removed
 		removeLock(lockFilePath);
 		logger.debug("Finished -");
@@ -167,11 +188,6 @@ public class AppStarter {
 	 */
 	private static void createLock(Path lockFilePath)
 	{
-=======
-
-
-		//close pseudo server app
->>>>>>> master
 		try
 		{
 			Files.createFile(lockFilePath);
@@ -180,30 +196,9 @@ public class AppStarter {
 		{
 			logger.error(e.getMessage());
 		}
-
-		//lock file removed
-		removeLock(lockFilePath);
-		logger.debug("Finished");
 	}
 
-	/**
-	 * Extract version and build number from version.txt
-	 *
-	 */
-	public static void getVersionAndBuild()
-	{
-		//file content has to look like this:
-		//  version=1.4
-		//  build.date=2018-09-27
-		try(Scanner fileReader = new Scanner(new File(VERSION_FILE))) {
-			VERSION = fileReader.nextLine().split("=")[1];
-			BUILD = fileReader.nextLine().split("=")[1];
-		}
-		catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-
+	
 	/**
 	 * check if lock exists and stop application
 	 *
@@ -224,24 +219,7 @@ public class AppStarter {
 		}
 	}
 
-
-	/**
-	 * Creates a lock file with given path
-	 *
-	 * @param lockFilePath
-	 */
-	private static void createLock(Path lockFilePath)
-	{
-		try
-		{
-			Files.createFile(lockFilePath);
-		}
-		catch (IOException e)
-		{
-			logger.error(e.getMessage());
-		}
-	}
-
+	
 	/**
 	 * Removes a lock file with a given path
 	 *

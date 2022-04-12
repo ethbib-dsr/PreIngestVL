@@ -27,6 +27,12 @@ public class ConfigProperties
 {
 	// relative path of config.properties file
 	final String CONFIG_PATH;
+	final String COMMON_CONFIG_PATH;
+	
+	// properties objects
+	private boolean propertiesSet = false;
+	private Properties commonProps;
+	private Properties individualProps;
 
 	//common file size option in byte
 	public final static long FILESIZ_BYTE = 1024;
@@ -43,8 +49,8 @@ public class ConfigProperties
 	final static String MAX_SOURCE_FILES = "max-source-files";
 	final static String SIP_DATA_PATH = "sip-data-path";
 	final static String SIP_XML_PATH = "sip-xml-path";
-	final static String SIP_IMAGE_DIRECTOY = "sip-image-directory";
-	final static String SIP_FULLTEXT_DIRECTOY = "sip-fulltext-directory";
+	final static String SIP_IMAGE_DIRECTORY = "sip-image-directory";		
+	final static String SIP_TEXT_DIRECTORIES = "sip-text-directories";		
 	final static String ALLOWED_SOURCE_FILE_ENDINGS = "allowed-source-file-endings";
 	final static String ALLOWED_IMAGE_FILE_ENDINGS = "allowed-image-file-endings";
 	final static String METS_FILE_NAME = "mets-file-name";
@@ -52,6 +58,8 @@ public class ConfigProperties
 	final static String DC_FILE_NAME = "dc-file-name";
 	final static String IE_FILE_NAME = "ie-file-name";
 	final static String MAX_SOURCE_FILE_SIZE = "max-source-file-size";
+	final static String MAX_IMPORT_SIZE = "max-import-size";
+	
 	final static String LISTING_FILE_AGE = "listing-file-age"; 
 	final static String LISTING_FILE_NAME = "listing-file-name";
 	
@@ -91,16 +99,17 @@ public class ConfigProperties
 	final static String DB_ROW_SOURCEPATH = "db-row-sourcepath";
 	final static String DB_ROW_SIPTYPE = "db-row-siptype";
 	final static String DB_ROW_SIPSTATUS = "db-row-sipstatus";
+	final static String DB_ROW_SIPSTATUS_FS = "db-row-sipstatus-fs";	
 	final static String DB_ROW_SIPNAME = "db-row-sipname";
 	final static String DB_ROW_SIPPATH = "db-row-sippath";
-	final static String DB_ROW_UPDATEDT = "db-row-updatedt";
+	final static String DB_ROW_UPDATEDT = "db-row-updatedt";	
 	final static String DB_ROW_ALIAS_TIMESTAMP = "db-row-alias-timestamp";
-	final static String DB_UPDATE_STATUS_FINAL = "db-update-status-final";
+	final static String DB_UPDATE_STATUS_FINAL = "db-update-status-final";	
 	final static String DB_SELECT_COUNT_AMDID = "db-select-count-amdid";
-	final static String DB_SELECT_COUNT_WHERE = "db-select-count-where";
-	final static String DB_SELECT_ALEPHID_WHERE = "db-select-alephid-where";
+	final static String DB_SELECT_COUNT_WHERE = "db-select-count-where";	
 	final static String DB_SELECT_ALEPHID_ORDER = "db-select-alephid-order";
-	final static String DB_ROW_STATUS_FINISHED = "db-row-status-finished";
+	final static String DB_ROW_STATUS_FINISHED = "db-row-status-finished";	
+	final static String DB_ROW_TRACKING_DOI = "db-row-tracking-doi";
 	
 	final static String DB_STATUS_INITIALIZED = "db-status-initialized";
 	final static String DB_STATUS_COPIED = "db-status-copied";
@@ -113,9 +122,11 @@ public class ConfigProperties
 	final static String DB_STATUS_INTEGRITY_MISSINGMETS = "db-status-integrity-missingmets";
 	final static String DB_STATUS_INTEGRITY_WRONGFILES = "db-status-integrity-wrongfiles";
 	final static String DB_STATUS_INTEGRITY_WRONG_STRUCTURE = "db-status-integrity-wrongstructure";	
+	final static String DB_STATUS_INTEGRITY_WRONG_XML_STRUCTURE = "db-status-integrity-wrong-xml-structure";
 	
 	final static String REASON_MAX_NUM = "reason-max-num";
 	final static String REASON_FILESIZE = "reason-filesize";
+	final static String REASON_MAX_IMPORT_SIZE = "reason-max-import-size";
 	final static String REASON_UNIQUE = "reason-unique";
 	final static String REASON_ALREADY_IN_DB = "reason-already-in-db";
 	final static String REASON_SINGLE_MASTER = "reason-single-master";
@@ -139,13 +150,11 @@ public class ConfigProperties
 	final static String EXIF_DATE_SECOND_WRONG_CHAR_POS = "exif-date-second-wrong-char-pos";
 	final static String EXIF_DATE_SECOND_WRONG_CHAR_FIX = "exif-date-second-wrong-char-fix";
 
-	final static String XPATH_ALEPHID = "xpath-alephid";
+	final static String XPATH_SYSTEMID = "xpath-systemid";
 	final static String XPATH_DOI = "xpath-doi";
 	final static String XPATH_ALT_TITLE = "xpath-alt_title";
-	final static String XPATH_LOCATION = "xpath-location";
-	final static String XPATH_SEARCH_ID = "xpath-search-id";
-	final static String XPATH_REPLACE_SECTION = "xpath-replace-section";
-	final static String REGEX_ALEPH_ID = "regex-alephid";
+	final static String XPATH_LOCATION = "xpath-location";	
+	final static String XPATH_REPLACE_SECTION = "xpath-replace-section";	
 	final static String FILE_NODE_NAME = "file-node-name";
 	final static String FILe_ATTRIBUTE_ID = "file-attribute-id";
 	final static String FILE_ATTRIBUTE_CREATED = "file-attribute-created";
@@ -155,15 +164,34 @@ public class ConfigProperties
 	final static String FILE_ATTRIBUTE_SIZE = "file-attribute-size";
 	final static String FILENAME_NODE_NAME = "filename-node-name";
 	final static String FILENAME_ATTRIBUTE_NAME = "filename-attribute-name";
-
+	
+	final static String CLEANUP_ACTIVE = "cleanup-active";
+	final static String CLEANUP_NUMBER_OF_FILES = "cleanup-number-of-files";
+	final static String CLEANUP_FINISHED_AGE_DELTA = "cleanup-finished-age-delta";
+	final static String CLEANUP_SIMULATION_MODE = "cleanup-simulation-mode";	
+	final static String CLEANUP_FS_VIEW = "cleanup-fs-view";
+	final static String SUBMISSION_FS_TABLE = "submission-fs-table";	
+	final static String CLEANUP_ROW_STATUS_FINISHED = "cleanup-row-status-finished";
+	final static String DB_ROW_SIP_STATUS_FS = "db-row-sip-status-fs";
+	final static String DB_ROW_FORCE_SOURCE_DELETE = "db-row-force-source-delete";
+	final static String DB_UPDATE_SIP_STATUS_FS_FINAL = "db-update-sipstatus-fs-final";
+	final static String DB_UPDATE_SIP_STATUS_FS_NOTFOUND = "db-update-sipstatus-fs-notfound";	
+	final static String CLEANUP_INFO_TEXT_FORCED_DELETE = "forced-delete-of-source";
+	final static String CLEANUP_USE_PATH_FRAGMENT = "cleanup-use-path-fragment";
+	final static String DB_ROW_DELETE_PATH = "db-row-delete-path";
+	
 	
 	/**
 	 * Constructor, needs path to config.properties file
 	 * 
 	 * @param configPath
 	 */
-	public ConfigProperties(String configPath)
+	public ConfigProperties(String configPath, String commonConfigPath)
 	{
+		
+		commonProps = new Properties();
+		individualProps = new Properties();
+		
 		if(!configPath.startsWith(File.separator))
 		{
 			CONFIG_PATH = File.separator + configPath;
@@ -172,6 +200,15 @@ public class ConfigProperties
 		{
 			CONFIG_PATH = configPath;	
 		}
+		
+		if(!commonConfigPath.startsWith(File.separator))
+		{
+			COMMON_CONFIG_PATH = File.separator + commonConfigPath;
+		}
+		else
+		{
+			COMMON_CONFIG_PATH = commonConfigPath;	
+		}		
 	}
 
 
@@ -184,27 +221,39 @@ public class ConfigProperties
 	 */
 	private String getElementFromProperty(String key)
 	{
-		String r = "";
-		String canPath = "";
-
-		Properties prop = new Properties();
-
-		try
-		{
-			canPath = new File("." + CONFIG_PATH).getCanonicalPath();
-			InputStream inputStream = new FileInputStream(canPath);
-			prop.load(inputStream);
+		String r = "";		
+		
+		if (!propertiesSet) {
+			String canPath = "";
+			try
+			{			 
+				canPath = new File("." + CONFIG_PATH).getCanonicalPath();
+				InputStream inputStream = new FileInputStream(canPath);
+				individualProps.load(inputStream);
+				
+				// the common-submission.properties file should be in the same directory as the individual file			
+				
+				canPath = new File("." + COMMON_CONFIG_PATH).getCanonicalPath();
+				inputStream = new FileInputStream(canPath);
+				commonProps.load(inputStream);
+			}
+			catch (FileNotFoundException e)
+			{
+				System.out.println("FileNotFoundException: " + e.getMessage());
+			}
+			catch (IOException e)
+			{
+				System.out.println("IOException: " + e.getMessage());
+			}
+			
+			propertiesSet = true;
 		}
-		catch (FileNotFoundException e)
-		{
-			System.out.println("FileNotFoundException: " + e.getMessage());
-		}
-		catch (IOException e)
-		{
-			System.out.println("IOException: " + e.getMessage());
-		}
-
-		r = prop.getProperty(key).trim();
+		
+		if (individualProps.containsKey(key)) {
+			r = individualProps.getProperty(key).trim();
+		} else {
+			r = commonProps.getProperty(key).trim();
+		} 		  
 
 		return r;
 	}
@@ -360,21 +409,20 @@ public class ConfigProperties
 	 */
 	public String getSipImageDirectory()
 	{
-		return getElementFromProperty(SIP_IMAGE_DIRECTOY);
+		return getElementFromProperty(SIP_IMAGE_DIRECTORY);
 	}
-
-
+	
 	/**
-	 * Getter for SIP fulltext directory name
+	 * returns String array with allowed text directories. multiple directories are
+	 * extracted by using the SIP_TEXT_DIRECTORIES
 	 * 
-	 * @return String sip-fulltext-directory
+	 * @return List<String> with all text directories
 	 */
-	public String getSipFulltextDirectory()
+	public List<String> getSipTextDirectories()
 	{
-		return getElementFromProperty(SIP_FULLTEXT_DIRECTOY);
-	}
-
-
+		return getListFromMultiValueProperty(SIP_TEXT_DIRECTORIES);
+	}	
+	
 	/**
 	 * returns String array with allowed image endings multiple file endings are
 	 * extracted by using the PROPERTIES_MULTI_VALUE_DIVIDER
@@ -826,7 +874,6 @@ public class ConfigProperties
 		return getElementFromProperty(DB_ROW_SIPSTATUS);
 	}	
 	
-	
 	/**
 	 * Getter value for column sip_name
 	 * 
@@ -868,7 +915,7 @@ public class ConfigProperties
 	public String getDbRowAliasTimestamp()
 	{
 		return getElementFromProperty(DB_ROW_ALIAS_TIMESTAMP);
-	}
+	}	
 	
 	/**
 	 * Getter value for select count query
@@ -880,6 +927,16 @@ public class ConfigProperties
 		return getElementFromProperty(DB_SELECT_COUNT_AMDID);
 	}
 	
+	/**
+	 * Getter value for DOI Tracking information
+	 * 
+	 * @return
+	 */
+	public String getDbRowTrackingDOI()
+	{
+		return getElementFromProperty(DB_ROW_TRACKING_DOI);
+	}
+	
 	
 	/**
 	 * Getter value for select count where condition
@@ -889,17 +946,6 @@ public class ConfigProperties
 	public String getDbSelectCountWhere()
 	{
 		return getElementFromProperty(DB_SELECT_COUNT_WHERE);
-	}
-	
-	
-	/**
-	 * Getter value for select segment of timestamp 
-	 * 
-	 * @return
-	 */
-	public String getDbSelectAlephIdWhere()
-	{
-		return getElementFromProperty(DB_SELECT_ALEPHID_WHERE);
 	}
 	
 	
@@ -923,6 +969,26 @@ public class ConfigProperties
 	{
 		return getElementFromProperty(DB_UPDATE_STATUS_FINAL);
 	}	
+	
+	/**
+	 * Getter for value of sip_status_fs SOURCE_DELETED
+	 * 
+	 * @return
+	 */
+	public String getDbUpdateSipStatusFileSystemFinal()
+	{
+		return getElementFromProperty(DB_UPDATE_SIP_STATUS_FS_FINAL);
+	}
+	
+	/**
+	 * Getter for value of sip_status_fs SOURCE_NOT_FOUND
+	 * 
+	 * @return
+	 */
+	public String getDbUpdateSipStatusFileSystemNotFound()
+	{
+		return getElementFromProperty(DB_UPDATE_SIP_STATUS_FS_NOTFOUND);
+	}
 	
 	/**
 	 * Getter for value of sip status copied
@@ -1049,6 +1115,17 @@ public class ConfigProperties
 	
 	
 	/**
+	 * Getter reason integrity wrong due to wrong XML structure
+	 * 
+	 * @return
+	 */
+	public String getDbStatusIntegrityWrongXMLStructure()
+	{
+		return getElementFromProperty(DB_STATUS_INTEGRITY_WRONG_XML_STRUCTURE);
+	}	
+	
+	
+	/**
 	 * Getter for reason max number
 	 * 
 	 * @return
@@ -1069,6 +1146,15 @@ public class ConfigProperties
 		return getElementFromProperty(REASON_FILESIZE);
 	}	
 	
+	/**
+	 * Getter for reason max import size reached
+	 * 
+	 * @return
+	 */
+	public String getReasonMaxImportSize()
+	{
+		return getElementFromProperty(REASON_MAX_IMPORT_SIZE);
+	}
 	
 	/**
 	 * Getter for reason aleph id in current run must be unique
@@ -1299,13 +1385,13 @@ public class ConfigProperties
 	
 	
 	/**
-	 * Getter for X-Path to AlephID in export_mets.xml
+	 * Getter for X-Path to system ID (AlephID or AlmaID) in export_mets.xml
 	 * 
 	 * @return
 	 */
-	public String getXpathAlephID()
+	public String getXpathSystemID()
 	{
-		return getElementFromProperty(XPATH_ALEPHID);
+		return getElementFromProperty(XPATH_SYSTEMID);
 	}
 	
 	
@@ -1341,18 +1427,6 @@ public class ConfigProperties
 		return getElementFromProperty(XPATH_LOCATION);
 	}	
 	
-	
-	/**
-	 * Getter for X-Path to search ID / AlephID in export_mets.xml
-	 * 
-	 * @return
-	 */
-	public String getXpathSearchId()
-	{
-		return getElementFromProperty(XPATH_SEARCH_ID);
-	}
-	
-	
 	/**
 	 * Getter for section identifier used for replacing element in xpaths
 	 * 
@@ -1361,17 +1435,6 @@ public class ConfigProperties
 	public String getXpathReplaceSection()
 	{
 		return getElementFromProperty(XPATH_REPLACE_SECTION);
-	}
-	
-	
-	/**
-	 * Getter for regex Aleph ID String
-	 * 
-	 * @return String
-	 */
-	public String getRegexAlephId()
-	{
-		return getElementFromProperty(REGEX_ALEPH_ID);
 	}
 
 
@@ -1518,5 +1581,171 @@ public class ConfigProperties
 		
 		return resultInBytes;
 	}
+	
+	/**
+	 * Getter for max-import-size that converts String in bytes
+	 * according to supplied unit (M, G)
+	 * 
+	 * @return
+	 */
+	public long getMaxImportSize()
+	{
+		long resultInBytes = 0;
+		int maxImportSize = 0;
+		String size = getElementFromProperty(MAX_IMPORT_SIZE);
+		char unit = size.charAt(size.length()-1);
+		
+		if(unit == 'G')
+		{
+			maxImportSize = Integer.parseInt(size.substring(0, size.length()-1));
+			resultInBytes = maxImportSize*ConfigProperties.FILESIZ_GB;			
+		}
+		else if(unit == 'M')
+		{
+			maxImportSize = Integer.parseInt(size.substring(0, size.length()-1));
+			resultInBytes = maxImportSize*ConfigProperties.FILESIZ_MB;			
+		}
+		else
+		{
+			resultInBytes = Integer.parseInt(size);
+		}
+
+		
+		return resultInBytes;
+	}	
+	
+	/**
+	 * Getter value for clean up job active status
+	 * 
+	 * @return
+	 */	
+	public boolean getCleanupActive() {
+		// if not configured, return false
+		try {
+		  return (getElementFromProperty(CLEANUP_ACTIVE).equalsIgnoreCase("TRUE"));
+		} catch (Exception e) {
+			return false;
+		}
+	}
+	
+	/**
+	 * Getter value for clean up use path fragment
+	 * 
+	 * @return
+	 */	
+	public boolean getCleanupUsePathFragment() {
+		// if not configured, return false
+		try {
+		  return (getElementFromProperty(CLEANUP_USE_PATH_FRAGMENT).equalsIgnoreCase("TRUE"));
+		} catch (Exception e) {
+			return false;
+		}
+	}
+	
+	/**
+	 * Getter value for clean up job number of entries to process
+	 * 
+	 * @return
+	 */	
+	public int getCleanupNumberOfFiles() {		
+		return Integer.parseInt(getElementFromProperty(CLEANUP_NUMBER_OF_FILES));
+	}
+	
+	/**
+	 * Getter value for clean up job additional days (default 30 + delta) 
+	 * 
+	 * @return
+	 */
+	public int getCleanupFinishedAgeDelta() {
+		return Integer.parseInt(getElementFromProperty(CLEANUP_FINISHED_AGE_DELTA));
+	}
+	
+	/**
+	 * Getter value for clean up job simulation mode 
+	 * 
+	 * @return
+	 */
+	public boolean getCleanupSimulationMode() {
+		try {
+			return (getElementFromProperty(CLEANUP_SIMULATION_MODE).equalsIgnoreCase("TRUE"));
+		} catch (Exception e) {
+			System.out.println("WARN: Configuration missing for value="+CLEANUP_SIMULATION_MODE+". Default is false.");
+			return false;
+		}
+	}	
+	
+	/**
+	 * Getter value for clean up job tracking/filesystem view 
+	 * 
+	 * @return
+	 */	
+	public String getCleanUpFilesystemView() {
+		return getElementFromProperty(CLEANUP_FS_VIEW);
+	}
+	
+	/**
+	 * Getter value for submussion fs table, SUBMISSION_LIFECYCLE 
+	 * 
+	 * @return
+	 */	
+	public String getSubmissionFilesystemTable() {
+		return getElementFromProperty(SUBMISSION_FS_TABLE);
+	}
+	
+	/**
+	 * Getter value for status for finished rows 
+	 * 
+	 * @return
+	 */	
+	public String getCleanUpRowStatusFinished() {
+		return getElementFromProperty(CLEANUP_ROW_STATUS_FINISHED);
+	}
+	
+	/**
+	 * Getter value for column SIP_STATUS_FS
+	 * 
+	 * @return
+	 */
+	public String getDbRowSipStatusFilesystem()
+	{
+		return getElementFromProperty(DB_ROW_SIP_STATUS_FS);
+	}
+	
+	/**
+	 * Getter value for column FORCE_SOURCE_DELETE
+	 * 
+	 * @return
+	 */
+	public String getDbRowForceSourceDelete()
+	{
+		return getElementFromProperty(DB_ROW_FORCE_SOURCE_DELETE);
+	}
+	
+	/**
+	 * Getter value for info text concerning a forced delete
+	 * 
+	 * @return
+	 */
+	public String getCleanUpInfoTextForcedDelete()
+	{
+		try {
+			return getElementFromProperty(CLEANUP_INFO_TEXT_FORCED_DELETE);
+		} catch (Exception e) {
+			System.out.println("WARN: Configuration missing for value="+CLEANUP_INFO_TEXT_FORCED_DELETE);
+			return "Infomessage missing";
+		}
+	}
+	
+	/**
+	 * Getter value for column DELETE_PATH
+	 * 
+	 * @return
+	 */
+	public String getDbRowDeletePath()
+	{
+		return getElementFromProperty(DB_ROW_DELETE_PATH);
+	}
+	
+	
 	
 }

@@ -21,6 +21,8 @@ import com.exlibris.dps.sdk.deposit.IEParser;
 import com.exlibris.dps.sdk.deposit.IEParserFactory;
 import com.exlibris.dps.submissionvl.ConfigProperties;
 import com.exlibris.dps.submissionvl.util.FileHandler;
+import com.exlibris.dps.submissionvl.util.SourceSip;
+import com.exlibris.dps.submissionvl.util.SourceSip.CapsuleTypeEnum;
 
 import gov.loc.mets.FileType;
 import gov.loc.mets.MetsType.FileSec.FileGrp;
@@ -40,8 +42,9 @@ public class IEBuilder
 	Mets mets;
 	FileHandler fileHandler;
 	ConfigProperties config;
+	SourceSip currentSip;
 	boolean hasImageFiles;
-	boolean hasFulltextFiles;
+	boolean hasTextFiles;
 	
 	private final Logger logger = Logger.getLogger(this.getClass());
 	
@@ -52,13 +55,14 @@ public class IEBuilder
 	 * @param FileHandler fileHandler
 	 * @param ConfigProperties config
 	 */
-	public IEBuilder(Mets mets, FileHandler fileHandler, ConfigProperties config, boolean hasImageFiles, boolean hasFulltextFiles)
+	public IEBuilder(Mets mets, FileHandler fileHandler, ConfigProperties config, SourceSip currentSip, boolean hasImageFiles, boolean hasTextFiles)
 	{
 		this.mets = mets;
 		this.fileHandler = fileHandler;
 		this.config = config;
 		this.hasImageFiles = hasImageFiles;
-		this.hasFulltextFiles = hasFulltextFiles;
+		this.hasTextFiles = hasTextFiles;
+		this.currentSip = currentSip;
 	}
 	
 	
@@ -152,19 +156,19 @@ public class IEBuilder
 			}
 
 			//run only if fulltext files exist in SIP
-			if(hasFulltextFiles)
+			if(hasTextFiles)
 			{				
 				List<MetsFileList> metsFiles = mets.getFileList();
 				
-				Map<String, String> fulltextNameHashPair = fileHandler.getFulltextHashPairMap();
+				Map<String, String> textNameHashPair = fileHandler.getTextHashPairMap();
 				
 				//iterate over all files in mets
 				for(MetsFileList metsFileList : metsFiles)
 				{
-					if (metsFileList.getFilepath().contains(config.getSipFulltextDirectory()))
+					if (metsFileList.filepathIsContained(config.getSipTextDirectories()))
 					{
 						//if file in mets does exist in file system from SIP
-						if(fulltextNameHashPair.containsKey(metsFileList.getFilename()))
+						if(textNameHashPair.containsKey(metsFileList.getFilename()))
 						{
 							//add new file third paramter is used in mets:FLocat as value for xlin:href
 							FileType ft = ie.addNewFile(fGrp, metsFileList.getMimetype(), metsFileList.getFilepath(), metsFileList.getFilename());
@@ -176,7 +180,7 @@ public class IEBuilder
 							DnxDocumentHelper fileDnxHelper = getDnxHelperForImage(fileDnx, metsFileList);
 							
 							//DNX MD5-fixity per file
-							DnxDocumentHelper.FileFixity fFixityMD5 = fileDnxHelper.new FileFixity("", "", config.getXmlFixityAlgorithMd5(), fulltextNameHashPair.get(metsFileList.getFilename()));
+							DnxDocumentHelper.FileFixity fFixityMD5 = fileDnxHelper.new FileFixity("", "", config.getXmlFixityAlgorithMd5(), textNameHashPair.get(metsFileList.getFilename()));
 							fixityList.add(fFixityMD5);
 							//DnxDocumentHelper.FileFixity fFixity2 = fileDnxHelper.new FileFixity("REG_SA_JAVA5_FIXITY", "", "[algorithm] 2", "[checksum] 2");
 							//fixityList.add(fFixity2);
@@ -188,7 +192,7 @@ public class IEBuilder
 			}
 		
 			//Builder for mets file entry
-			FileType ft = ie.addNewFile(fGrp, config.getXmlMetsFileType(), fileHandler.getAlephID() + ConfigProperties.getFileSeparator() + config.getMetsFileName(), config.getMetsFileName());
+			FileType ft = ie.addNewFile(fGrp, config.getXmlMetsFileType(), currentSip.getCapsuleID() + ConfigProperties.getFileSeparator() + config.getMetsFileName(), config.getMetsFileName());
 			
 			//DNX genereal file characteristics per file
 			DnxDocument fileDnx = ie.getFileDnx(ft.getID());
@@ -271,10 +275,17 @@ public class IEBuilder
 		DnxDocument ieDnx = DnxDocumentFactory.getInstance().createDnxDocument();
 		DnxDocumentHelper ieDnxHelper = new DnxDocumentHelper(ieDnx);
 
-		//CMS secion
-		CMS cms = ieDnxHelper.new CMS();
-		cms.setSystem(config.getXmlCmsSystem());
-		cms.setRecordId(fileHandler.getAlephID());
+
+		// DDE-796. DOIs capsules will no longer have an aleph-id, but an alma-id, therefore
+		// the CMS section makes no sense and is no longer part in ie.xml
+		/*
+		if (currentSip.getCapsuleType() == CapsuleTypeEnum.ALEPH) {
+			//CMS secion
+			CMS cms = ieDnxHelper.new CMS();
+			cms.setSystem(config.getXmlCmsSystem());			
+			cms.setRecordId(mets.getRecordIdentifier());
+		}*/
+		
 		//using the setCMS method will create all CMS nodes, those not filled will created empty
 		//ieDnxHelper.setCMS(cms);
 		
@@ -323,7 +334,7 @@ public class IEBuilder
 
 		metsDnxHelper.getGeneralFileCharacteristics().setLabel(config.getMetsFileName());
 		metsDnxHelper.getGeneralFileCharacteristics().setFileOriginalName(config.getMetsFileName());
-		metsDnxHelper.getGeneralFileCharacteristics().setFileOriginalPath(mets.getAlephid() + ConfigProperties.getFileSeparator() + config.getMetsFileName());		
+		metsDnxHelper.getGeneralFileCharacteristics().setFileOriginalPath(currentSip.getCapsuleID() + ConfigProperties.getFileSeparator() + config.getMetsFileName());		
 		
 		return metsDnxHelper;
 	}
@@ -341,8 +352,8 @@ public class IEBuilder
 		
 		dc = ie.getDublinCoreParser();
 		dc.addElement(config.getXmlDcTitle(), fileHandler.getCurrentFileName());
-		dc.addElement(config.getXmlDcTermsIsPart(), isPartOfBuilder());
-		dc.addElement(config.getXmlDcIdentifier(), mets.getAlephid());
+		dc.addElement(config.getXmlDcTermsIsPart(), isPartOfBuilder());		
+		dc.addElement(config.getXmlDcIdentifier(), mets.getRecordIdentifier());
 		dc.addElement(config.getXmlDcRelation(), mets.getDoi());
 		dc.addElement(config.getXmlDcDate(), fileHandler.getFormattedDate(config.getXmlDcDateFormatting()));
 		dc.addElement(config.getXmlDcTermsAlternative(), mets.getAlternativeTitle());
@@ -362,8 +373,8 @@ public class IEBuilder
 		return config.getXmlDomainRoot()
 					+ config.getXmlPathDivider()
 					+ config.getXmlDcInstitute()
-					+ config.getXmlPathDivider() 
-					+ mets.getAlephid();
+					+ config.getXmlPathDivider()					
+					+ mets.getRecordIdentifier();
 	}
 
 }
